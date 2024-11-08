@@ -14,6 +14,7 @@
     "paths": {
       "/build": {
         "post": {
+          "operationId": "buildPlatform",
           "summary": "Trigger platform compilation",
           "description": "Compiles a Heta-based platform and generates export files.",
           "requestBody": {
@@ -22,7 +23,12 @@
               "multipart/form-data": {
                 "schema": {
                   "type": "object",
-                  "properties": {
+                  "properties": {          
+                    "files": {
+                      "type": "array",
+                      "description": "Array of files of platform.",
+                      "items": { "$ref": "#/components/schemas/File" }
+                    },
                     "declaration": {
                       "type": "string",
                       "description": "Heta declaration file for compilation."
@@ -120,6 +126,34 @@
             }
           }
         }
+      },
+      "/": {
+        "get": {
+          "operationId": "getInfo",
+          "description": "Check connectivity and get information about the Heta Compiler.",
+          "responses": {
+            "200": {
+              "description": "Information about the Heta Compiler.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "version": {
+                        "type": "string",
+                        "example": "1.0.0"
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "Heta Compiler API"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "components": {
@@ -187,6 +221,20 @@
                 "type": "boolean",
                 "description": "If true, components will be split by class and saved as separate sheets/files. Used for Table and XLSX formats."
               }
+            }
+          }
+        },
+        "File": {
+          "type": "object",
+          "properties": {
+            "filepath": {
+              "type": "string",
+              "description": "Path to the file."
+            },
+            "filebody": {
+              "type": "string",
+              "format": "binary",
+              "description": "File content."
             }
           }
         }
