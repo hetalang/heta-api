@@ -27,22 +27,35 @@
                     "files": {
                       "type": "array",
                       "description": "Array of files of platform.",
-                      "items": { "$ref": "#/components/schemas/File" }
+                      "items": { "$ref": "#/components/schemas/File" },
+                      "example": [
+                        {
+                          "filepath": "platform.yml",
+                          "filebody": "<base64-encoded file content>"
+                        },
+                        {
+                          "filepath": "index.heta",
+                          "filebody": "<base64-encoded file content>"
+                        }
+                      ]
                     },
                     "declaration": {
                       "type": "string",
-                      "description": "Heta declaration file for compilation."
+                      "description": "Heta declaration file for compilation.",
+                      "example": "platform.yml"
                     },
                     "source": {
                       "type": "string",
                       "default": "index.heta",
-                      "description": "Index file for compilation."
+                      "description": "Index file for compilation.",
+                      "example": "index.heta"
                     },
                     "type": {
                       "type": "string",
                       "default": "heta",
                       "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
-                      "description": "The type of file for compilation."
+                      "description": "The type of file for compilation.",
+                      "example": "heta"
                     },
                     "unitsCheck": {
                       "type": "boolean",
@@ -150,6 +163,10 @@
                         "type": "string",
                         "example": "1.0.0"
                       },
+                      "Node": {
+                        "type": "string",
+                        "example": "v14.17.0"
+                      },
                       "description": {
                         "type": "string",
                         "example": "Heta Compiler API"
@@ -179,16 +196,19 @@
               },
               "filepath": {
                 "type": "string",
-                "description": "Path for saving exported files."
+                "description": "Path for saving exported files.",
+                "example": "model"
               },
               "spaceFilter": {
                 "type": "string",
-                "description": "Filter for space in RegExp format."
+                "description": "Filter for space in RegExp format.",
+                "example": "^one|two$"
               },
               "omit": {
                 "type": "array",
                 "description": "Array of properties paths to exclude from output. Used in JSON, YAML and Table formats.",
-                "items": { "type": "string" }
+                "items": { "type": "string" },
+                "example": ["notes", "tags"]
               },
               "noUnitsExpr": {
                 "type": "boolean",
@@ -210,7 +230,8 @@
               },
               "groupConstBy": {
                 "type": "string",
-                "description": "How to group const in Initial Values of DBSolve file. Written in JSON path format."
+                "description": "How to group const in Initial Values of DBSolve file. Written in JSON path format.",
+                "example": "tags[0]"
               },
               "auxAsNotes": {
                 "type": "boolean",
@@ -218,7 +239,8 @@
               },
               "omitRows": {
                 "type": "number",
-                "description": "Creates empty rows in output sheets. Used for Table and XLSX formats."
+                "description": "Creates empty rows in output sheets. Used for Table and XLSX formats.",
+                "example": 3
               },
               "bookType": {
                 "type": "string",
