@@ -1,0 +1,196 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Heta Compiler API",
+      "version": "1.0.0",
+      "description": "API for interacting with the Heta Compiler via HTTP."
+    },
+    "servers": [
+      {
+        "url": "https://heta-api.insysbio.com/api",
+        "description": "Main server for Heta API"
+      }
+    ],
+    "paths": {
+      "/build": {
+        "post": {
+          "summary": "Trigger platform compilation",
+          "description": "Compiles a Heta-based platform and generates export files.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "declaration": {
+                      "type": "string",
+                      "description": "Heta declaration file for compilation."
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Index file for compilation."
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
+                      "description": "The type of file for compilation."
+                    },
+                    "unitsCheck": {
+                      "type": "boolean",
+                      "description": "Check for unit consistency."
+                    },
+                    "debug": {
+                      "type": "boolean",
+                      "description": "Enable debugging mode."
+                    },
+                    "distDir": {
+                      "type": "string",
+                      "description": "Path for saving exported files."
+                    },
+                    "metaDir": {
+                      "type": "string",
+                      "description": "Path for saving metadata."
+                    },
+                    "logMode": {
+                      "type": "string",
+                      "enum": ["never", "error", "always"],
+                      "description": "When to create a log file."
+                    },
+                    "export": {
+                      "$ref": "#/components/schemas/Export"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Compilation succeeded.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Compilation OK!"
+                      },
+                      "outputDir": {
+                        "type": "string",
+                        "description": "Path to the directory with exported files."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Wrong format of export option."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Internal Heta compiler error."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Export": {
+          "type": "array",
+          "description": "Export formats in JSON format.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "enum": ["JSON", "YAML", "DBSolve", "SLV", "SBML", "Simbio", "Mrgsolve", "Table", "XLSX", "Julia", "Matlab", "Dot", "Summary"],
+                "description": "The type of file for compilation."
+              },
+              "filepath": {
+                "type": "string",
+                "description": "Path for saving exported files."
+              },
+              "spaceFilter": {
+                "type": "string",
+                "description": "Filter for space in RegExp format."
+              },
+              "omit": {
+                "type": "array",
+                "description": "Array of properties paths to exclude from output. Used in JSON, YAML and Table formats.",
+                "items": { "type": "string" }
+              },
+              "noUnitsExpr": {
+                "type": "boolean",
+                "description": "If false or not set, all units will be written in UnitsExpr format. If true, units will be written in Unit array format. Used in JSON and YAML formats."
+              },
+              "powTransform": {
+                "type": "string",
+                "enum": ["keep", "operator", "function"],
+                "description": "Transformation of x^y and pow(x, y). Used for DBSolve and SLV formats."
+              },
+              "version": {
+                "type": "string",
+                "enum": ["25", "26", "L2V3", "L2V4", "L2V5", "L3V1", "L3V2"],
+                "description": "File version for SLV, DBSolve, and SBML formats."
+              },
+              "eventsOff": {
+                "type": "boolean",
+                "description": "If true, switchers will not be exported to DBSolve events. Used for SLV format."
+              },
+              "groupConstBy": {
+                "type": "string",
+                "description": "How to group const in Initial Values of DBSolve file. Written in JSON path format."
+              },
+              "auxAsNotes": {
+                "type": "boolean",
+                "description": "If true, aux content will be appended to Simbio Notes as JSON object. Used for Simbio format."
+              },
+              "omitRows": {
+                "type": "number",
+                "description": "Creates empty rows in output sheets. Used for Table and XLSX formats."
+              },
+              "bookType": {
+                "type": "string",
+                "enum": ["xlsx", "xlsm", "xlsb", "biff8", "wk3", "csv", "txt", "sylk", "biff5", "biff4", "biff3", "biff2", "html", "dif", "dbf", "wk1", "xlml", "ods", "fods", "rtf", "prn", "eth"],
+                "description": "Supported file types for Table format."
+              },
+              "splitByClass": {
+                "type": "boolean",
+                "description": "If true, components will be split by class and saved as separate sheets/files. Used for Table and XLSX formats."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
