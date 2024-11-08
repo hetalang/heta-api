@@ -1,0 +1,190 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Heta Compiler API",
+      "version": "1.0.0",
+      "description": "API for interacting with the Heta Compiler via HTTP."
+    },
+    "servers": [
+      {
+        "url": "https://heta-api.insysbio.com/api",
+        "description": "Man server for Heta API"
+      }
+    ],
+    "paths": {
+      "/build": {
+        "post": {
+          "summary": "Trigger platform compilation",
+          "description": "Compiles a Heta-based platform and generates export files.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "declaration": {
+                      "type": "string",
+                      "description": "Heta declaration file for compilation."
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "index file for compilation."
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
+                      "description": "The type of file for compilation."
+                    },
+                    "unitsCheck": {
+                      "type": "boolean",
+                      "description": "Check for unit consistency."
+                    },
+                    "debug": {
+                      "type": "boolean",
+                      "description": "Enable debugging mode."
+                    },
+                    "distDir": {
+                      "type": "string",
+                      "description": "Path for saving exported files."
+                    },
+                    "metaDir": {
+                      "type": "string",
+                      "description": "Path for saving metadata."
+                    },
+                    "logMode": {
+                      "type": "string",
+                      "enum": ["never", "error", "always"],
+                      "description": "When to create a log file."
+                    },
+                    "export": {
+                      "type": "array",
+                      "description": "Export formats in JSON format.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "format": {
+                            "type": "string",
+                            "enum": ["JSON", "YAML", "DBSolve", "SLV", "SBML", "Simbio", "Mrgsolve", "Table", "XLSX", "Julia", "Matlab", "Dot", "Summary"],
+                            "description": "The type of file for compilation."
+                          },
+                          "filepath": {
+                            "type": "string",
+                            "description": "Path for saving exported files."
+                          },
+                          "spaceFilter": {
+                            "type": "string",
+                            "description": "Filter for space in RegExp format."
+                          },
+                          "omit": {
+                            "type": "array",
+                            "description": "Array of properties paths to exclude from output. Used in JSON, YAML and Table formats.",
+                            "items": { "type": "string" }
+                          },
+                          "noUnitsExpr": {
+                            "type": "boolean",
+                            "description": "If false or not set all units will be written in format of UnitsExpr. If true all unit will be written in Unit array format. Used in JSON and YAML formats."
+                          },
+                          "powTransform": {
+                            "type": "string",
+                            "enum": ["keep", "operator", "function"],
+                            "description": "This is option describing if the transformation of x^y and pow(x, y) is required. Used for DBSolve and SLV format."
+                          },
+                          "version": {
+                            "type": "string",
+                            "enum": ["25", "26", "L2V3", "L2V4", "L2V5", "L3V1", "L3V2"],
+                            "description": "SLV file version: 26 (for DBSolveOptimum 2020) or 25 (for earlier versions). Used for SLV, DBSolve and SBML format."
+                          },
+                          "eventsOff": {
+                            "type": "boolean",
+                            "description": "if eventsOff = true the switchers will not be exported to DBSolve events. Used for SLV format."
+                          },
+                          "groupConstBy": {
+                            "type": "string",
+                            "description": "How to group const in Initial Values of DBSolve file. Should be written in format of JSON path."
+                          },
+                          "auxAsNotes": {
+                            "type": "boolean",
+                            "description": "If true, aux content will be appended to Simbio Notes as JSON object. Used for Simbio format."
+                          },
+                          "omitRows": {
+                            "type": "number",
+                            "description": "If set this creates empty rows in output sheets. Used for Table and XLSX format."
+                          },
+                          "bookType": {
+                            "type": "string",
+                            "enum": ["xlsx", "xlsm", "xlsb", "biff8", "wk3", "csv", "txt", "sylk", "biff5", "biff4", "biff3", "biff2", "html", "dif", "dbf", "wk1", "xlml", "ods", "fods", "rtf", "prn", "eth"],
+                            "description": "One of the supported file types, see xlsx docs. Used for Table format."
+                          },
+                          "splitByClass": {
+                            "type": "boolean",
+                            "description": "If true the components will be split by class and saved as several sheets: one sheet/file per a class. Used for Table and XLSX format."
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": []
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Compilation succeeded.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Compilation OK!"
+                      },
+                      "outputDir": {
+                        "type": "string",
+                        "description": "Path to the directory with exported files."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Wrong format of export option."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Internal Heta compiler error."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+}
+  
