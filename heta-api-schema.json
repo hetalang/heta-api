@@ -35,31 +35,38 @@
                     },
                     "source": {
                       "type": "string",
+                      "default": "index.heta",
                       "description": "Index file for compilation."
                     },
                     "type": {
                       "type": "string",
+                      "default": "heta",
                       "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
                       "description": "The type of file for compilation."
                     },
                     "unitsCheck": {
                       "type": "boolean",
+                      "default": false,
                       "description": "Check for unit consistency."
                     },
                     "debug": {
                       "type": "boolean",
+                      "default": false,
                       "description": "Enable debugging mode."
                     },
                     "distDir": {
                       "type": "string",
+                      "default": "dist",
                       "description": "Path for saving exported files."
                     },
                     "metaDir": {
                       "type": "string",
+                      "default": "meta",
                       "description": "Path for saving metadata."
                     },
                     "logMode": {
                       "type": "string",
+                      "default": "error",
                       "enum": ["never", "error", "always"],
                       "description": "When to create a log file."
                     },
@@ -160,6 +167,7 @@
       "schemas": {
         "Export": {
           "type": "array",
+          "default": [],
           "description": "Export formats in JSON format.",
           "items": {
             "type": "object",
