@@ -190,7 +190,8 @@
               "in": "query",
               "description": "Filenames for downloading of null for all files.",
               "schema": {
-                "type": ["array", null],
+                "type": "array",
+                "nullable": true,
                 "items": { "type": "string" },
                 "example": ["dist/xlsx/table.xlsx", "dist/json/model.json"],
                 "default": null
@@ -205,6 +206,60 @@
                   "schema": {
                     "type": "array",
                     "items": { "type": "string", "format": "binary" }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Files are not found.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Files are not found."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "delete": {
+          "operationId": "deleteFiles",
+          "summary": "Delete compiled files",
+          "description": "Delete compiled files by task ID.",
+          "parameters": [
+            {
+              "name": "taskId",
+              "in": "path",
+              "required": true,
+              "description": "Task ID for getting files.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Files are deleted.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 0
+                      },
+                      "status": {
+                        "type": "string",
+                        "example": "Files are deleted."
+                      }
+                    }
                   }
                 }
               }
@@ -352,4 +407,3 @@
       }
     }
 }
-  
