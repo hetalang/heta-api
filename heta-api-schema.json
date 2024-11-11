@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
       "title": "Heta Compiler API",
-      "version": "1.0.0",
+      "version": "0.1.0",
       "description": "API for interacting with the Heta Compiler via HTTP."
     },
     "servers": [
@@ -23,7 +23,12 @@
               "multipart/form-data": {
                 "schema": {
                   "type": "object",
-                  "properties": {          
+                  "properties": {
+                    "lifetime": {
+                      "type": "number",
+                      "default": 3600,
+                      "description": "Time in seconds for keeping files on the server."
+                    },       
                     "files": {
                       "type": "array",
                       "description": "Array of files of platform.",
@@ -93,19 +98,37 @@
           },
           "responses": {
             "200": {
-              "description": "Compilation succeeded.",
+              "description": "Compilation finished.",
               "content": {
                 "application/json": {
                   "schema": {
                     "type": "object",
                     "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 0
+                      },
                       "status": {
                         "type": "string",
                         "example": "Compilation OK!"
                       },
-                      "outputDir": {
+                      "filenames": {
+                        "type": "array",
+                        "description": "Array of filenames.",
+                        "items": { "type": "string" }
+                      },
+                      "logs": {
+                        "type": "array",
+                        "description": "Array of log messages.",
+                        "items": { "type": "string" }
+                      },
+                      "taskId": {
                         "type": "string",
-                        "description": "Path to the directory with exported files."
+                        "description": "Task ID for getting files."
+                      },
+                      "lifeend": {
+                        "type": "number",
+                        "description": "Time when files will be deleted."
                       }
                     }
                   }
@@ -138,6 +161,64 @@
                       "error": {
                         "type": "string",
                         "example": "Internal Heta compiler error."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/download/{taskId}": {
+        "get": {
+          "operationId": "downloadFiles",
+          "summary": "Download compiled files",
+          "description": "Download compiled files by task ID.",
+          "parameters": [
+            {
+              "name": "taskId",
+              "in": "path",
+              "required": true,
+              "description": "Task ID for getting files.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "filenames",
+              "in": "query",
+              "description": "Filenames for downloading of null for all files.",
+              "schema": {
+                "type": ["array", null],
+                "items": { "type": "string" },
+                "example": ["dist/xlsx/table.xlsx", "dist/json/model.json"],
+                "default": null
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Files are ready for download.",
+              "content": {
+                "application/zip": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Files are not found.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Files are not found."
                       }
                     }
                   }
@@ -270,5 +351,5 @@
         }
       }
     }
-  }
+}
   
