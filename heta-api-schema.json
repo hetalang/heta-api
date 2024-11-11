@@ -46,8 +46,9 @@
                     },
                     "declaration": {
                       "type": "string",
-                      "description": "Heta declaration file for compilation.",
-                      "example": "platform.yml"
+                      "description": "The filepath to declaration file without extension. The command will search the declaration file based on option trying a set of extensions: .json/.yml.",
+                      "default": "platform",
+                      "example": "platform1"
                     },
                     "source": {
                       "type": "string",
@@ -112,9 +113,9 @@
                         "type": "string",
                         "example": "Compilation OK!"
                       },
-                      "filenames": {
+                      "filepaths": {
                         "type": "array",
-                        "description": "Array of filenames.",
+                        "description": "Array of filepaths for the generated files.",
                         "items": { "type": "string" }
                       },
                       "logs": {
@@ -124,11 +125,13 @@
                       },
                       "taskId": {
                         "type": "string",
-                        "description": "Task ID for getting files."
+                        "description": "Task ID for getting files in UIDs format.",
+                        "example": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                       },
                       "lifeend": {
                         "type": "number",
-                        "description": "Time when files will be deleted."
+                        "description": "Time when files will be deleted in Unix timestamp seconds format.",
+                        "example": 1634025600
                       }
                     }
                   }
@@ -182,13 +185,14 @@
               "required": true,
               "description": "Task ID for getting files.",
               "schema": {
-                "type": "string"
+                "type": "string",
+                "example": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
               }
             },
             {
-              "name": "filenames",
+              "name": "filepaths",
               "in": "query",
-              "description": "Filenames for downloading of null for all files.",
+              "description": "Filepaths to download or `null` for all files.",
               "schema": {
                 "type": "array",
                 "nullable": true,
@@ -204,8 +208,8 @@
               "content": {
                 "application/zip": {
                   "schema": {
-                    "type": "array",
-                    "items": { "type": "string", "format": "binary" }
+                    "type": "string",
+                    "format": "binary"
                   }
                 }
               }

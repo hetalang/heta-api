@@ -17,6 +17,8 @@ Receive compilation logs and a taskId for download the result.
 
 Send taskId and filenames to download.
 
+### /download/{taskId} (DELETE)
+
 ### / (GET)
 
 Receive a message with heta-compiler version.
