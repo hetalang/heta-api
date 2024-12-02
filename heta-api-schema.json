@@ -1,5 +1,5 @@
 {
-    "openapi": "3.1.0",
+    "openapi": "3.0.0",
     "info": {
       "title": "Heta Compiler API",
       "version": "0.1.0",
@@ -36,11 +36,13 @@
                       "example": [
                         {
                           "filepath": "platform.yml",
+                          "format": "binary",
                           "filebody": "<base64-encoded file content>"
                         },
                         {
                           "filepath": "index.heta",
-                          "filebody": "<base64-encoded file content>"
+                          "format": "text",
+                          "filebody": "include model.heta;\n\n"
                         }
                       ]
                     },
@@ -139,7 +141,7 @@
               }
             },
             "400": {
-              "description": "Invalid request parameters.",
+              "description": "Invalid request parameters. Request structure do not match the schema.",
               "content": {
                 "application/json": {
                   "schema": {
@@ -148,6 +150,38 @@
                       "error": {
                         "type": "string",
                         "example": "Wrong format of export option."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "413": {
+              "description": "Request entity too large. The request body is too large.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Request files too large."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "429": {
+              "description": "Too many requests. The server is busy.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Too many requests. Try again later."
                       }
                     }
                   }
@@ -303,7 +337,7 @@
                         "type": "string",
                         "example": "1.0.0"
                       },
-                      "Node": {
+                      "node": {
                         "type": "string",
                         "example": "v14.17.0"
                       },
@@ -401,10 +435,15 @@
               "type": "string",
               "description": "Path to the file."
             },
+            "format": {
+              "type": "string",
+              "enum": ["binary", "text"],
+              "default": "text",
+              "description": "The type of file for compilation."
+            },
             "filebody": {
               "type": "string",
-              "format": "binary",
-              "description": "File content."
+              "description": "File content as binary or plain string."
             }
           }
         }
