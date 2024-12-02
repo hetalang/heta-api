@@ -1,8 +1,9 @@
 const express = require('express');
 const OpenApiValidator = require('express-openapi-validator');
-const { version } = require('heta-compiler/package.json');
-
 const app = express();
+
+const emptyRoutes = require('./empty');
+const buildRoutes = require('./build');
 
 app.use(express.json());
 
@@ -16,19 +17,15 @@ app.use(
 );
 
 app.use((err, req, res, next) => {
-    // format error
-    res.status(err.status || 500).json({
-      message: err.message,
-      errors: err.errors,
-    });
+  // format error
+  res.status(err.status || 500).json({
+    message: err.message,
+    errors: err.errors,
+  });
 });
 
-app.get('/', (req, res) => {
-    res.send({
-        description: "API connector for Heta compiler",
-        version: version,
-        node: process.version
-    })
-});
+// Register routes
+app.use('/', emptyRoutes);
+app.use('/build', buildRoutes);
 
 app.listen(3000, () => console.log('API running on http://localhost:3000'));

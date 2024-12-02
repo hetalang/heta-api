@@ -28,7 +28,7 @@
                       "type": "number",
                       "default": 3600,
                       "description": "Time in seconds for keeping files on the server."
-                    },       
+                    },
                     "files": {
                       "type": "array",
                       "description": "Array of files of platform.",
