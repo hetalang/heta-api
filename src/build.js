@@ -4,7 +4,6 @@ const { Builder, StringTransport, HetaLevelError } = require('heta-compiler');
 const fs = require('fs-extra');
 const path = require('path');
 const YAML = require('js-yaml');
-const { log } = require('console');
 
 // directory to store files
 const FILES = 'files';
@@ -40,11 +39,14 @@ router.post('/', (req, res) => {
     try {
         var builder = main(apiOptions, taskDir, apiLogs);
     } catch (error) {
+        // delete task directory
+        fs.rmSync(taskDir, { recursive: true });
+
+        // handle errors
         if (error.name === 'BuildLevelError' || error.name === 'HetaLevelError') {
-            apiLogs.push(e.message);
+            apiLogs.push(error.message);
             apiLogs.push('STOP!');
             res.status(400).send({
-                taskId: uuid,
                 logs: apiLogs,
             });
             return;
@@ -59,10 +61,21 @@ router.post('/', (req, res) => {
     } else {
         apiLogs.push('Compilation OK!');
     }
+
+    // calculate time to delete
+    const currentTime = Math.floor(Date.now() / 1000);
+    const deleteTime = currentTime + apiOptions.lifetime;
+    // delete task directory after lifeTime
+    setTimeout(() => {
+        fs.rmSync(taskDir, { recursive: true });
+    }, apiOptions.lifetime * 1000);
+
+    
+
     res.send({
         filepaths: [],
         taskId: uuid,
-        lifeend: [],
+        lifeend: deleteTime, // in seconds
         logs: apiLogs,
     });
 });
@@ -101,8 +114,8 @@ function main(apiOptions, targetDir, logs) {
                 throw new Error('Not an object.');
             }
             Object.assign(declaration, declarationFromFile);
-        } catch (e) {
-            throw new BuildLevelError(`Wrong format of declaration file: \n"${e.message}"`);
+        } catch (error) {
+            throw new BuildLevelError(`Wrong format of declaration file: \n"${error.message}"`);
         }
     }
 
