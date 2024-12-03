@@ -7,7 +7,7 @@
     },
     "servers": [
       {
-        "url": "https://heta-api.insysbio.com/api",
+        "url": "https://heta-api.insysbio.com",
         "description": "Main server for Heta API"
       }
     ],
@@ -20,7 +20,7 @@
           "requestBody": {
             "required": true,
             "content": {
-              "multipart/form-data": {
+              "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -49,45 +49,37 @@
                     "declaration": {
                       "type": "string",
                       "description": "The filepath to declaration file without extension. The command will search the declaration file based on option trying a set of extensions: .json/.yml.",
-                      "default": "platform",
                       "example": "platform1"
                     },
                     "source": {
                       "type": "string",
-                      "default": "index.heta",
                       "description": "Index file for compilation.",
                       "example": "index.heta"
                     },
                     "type": {
                       "type": "string",
-                      "default": "heta",
                       "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
                       "description": "The type of file for compilation.",
                       "example": "heta"
                     },
                     "unitsCheck": {
                       "type": "boolean",
-                      "default": false,
                       "description": "Check for unit consistency."
                     },
                     "debug": {
                       "type": "boolean",
-                      "default": false,
                       "description": "Enable debugging mode."
                     },
                     "distDir": {
                       "type": "string",
-                      "default": "dist",
                       "description": "Path for saving exported files."
                     },
                     "metaDir": {
                       "type": "string",
-                      "default": "meta",
                       "description": "Path for saving metadata."
                     },
                     "logMode": {
                       "type": "string",
-                      "default": "error",
                       "enum": ["never", "error", "always"],
                       "description": "When to create a log file."
                     },
@@ -107,14 +99,6 @@
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "statusCode": {
-                        "type": "number",
-                        "example": 0
-                      },
-                      "status": {
-                        "type": "string",
-                        "example": "Compilation OK!"
-                      },
                       "filepaths": {
                         "type": "array",
                         "description": "Array of filepaths for the generated files.",
@@ -358,8 +342,7 @@
       "schemas": {
         "Export": {
           "type": "array",
-          "default": [],
-          "description": "Export formats in JSON format.",
+          "description": "Export formats in JSON.",
           "items": {
             "type": "object",
             "properties": {
@@ -437,7 +420,7 @@
             },
             "format": {
               "type": "string",
-              "enum": ["binary", "text"],
+              "enum": ["binary", "utf8"],
               "default": "text",
               "description": "The type of file for compilation."
             },
