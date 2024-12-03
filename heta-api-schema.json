@@ -41,7 +41,7 @@
                         },
                         {
                           "filepath": "index.heta",
-                          "format": "text",
+                          "format": "utf8",
                           "filebody": "include model.heta;\n\n"
                         }
                       ]
@@ -94,6 +94,38 @@
           "responses": {
             "200": {
               "description": "Compilation finished.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "filepaths": {
+                        "type": "array",
+                        "description": "Array of filepaths for the generated files.",
+                        "items": { "type": "string" }
+                      },
+                      "logs": {
+                        "type": "array",
+                        "description": "Array of log messages.",
+                        "items": { "type": "string" }
+                      },
+                      "taskId": {
+                        "type": "string",
+                        "description": "Task ID for getting files in UIDs format.",
+                        "example": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
+                      },
+                      "lifeend": {
+                        "type": "number",
+                        "description": "Time when files will be deleted in Unix timestamp seconds format.",
+                        "example": 1634025600
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "422": {
+              "description": "Unprocessable entity. The request is well-formed but unable to process.",
               "content": {
                 "application/json": {
                   "schema": {

@@ -24,6 +24,16 @@ app.use((err, req, res, next) => {
   // dev mode
   throw err;
 
+  // error because of wrong input
+  if (err.status === 400) {
+    res.status(err.status).json({
+      name: err.name,
+      message: err.message,
+      errors: err.errors,
+    });
+    return;
+  }
+
   // production mode
   res.status(err.status || 500).json({
     message: 'Internal server error, contact the developers.'

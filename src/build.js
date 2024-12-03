@@ -1,6 +1,6 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { Builder, StringTransport, HetaLevelError } = require('heta-compiler');
+const { Builder, StringTransport } = require('heta-compiler');
 const fs = require('fs-extra');
 const path = require('path');
 const YAML = require('js-yaml');
@@ -23,13 +23,25 @@ router.post('/', (req, res) => {
     const taskDir = path.join(FILES, uuid);
     fs.mkdirSync(taskDir);
 
+    // create filepaths
+    let filepaths = [];
+
     // copy files to the task directory
     // {filpath: 'path/to/file', format: 'binary', filebody: 'content'}
     apiOptions.files?.forEach((file) => {
         const filepath = path.join(taskDir, file.filepath);
         // write file and create directories if not exist
         fs.outputFileSync(filepath, file.filebody, file.format);
+        filepaths.push(file.filepath);
     });
+
+    // calculate time to delete
+    const currentTime = Math.floor(Date.now() / 1000);
+    const deleteTime = currentTime + apiOptions.lifetime;
+    // delete task directory after lifeTime
+    setTimeout(() => {
+        fs.rmSync(taskDir, { recursive: true });
+    }, apiOptions.lifetime * 1000);
 
     // storage for logs
     // items as strings
@@ -39,18 +51,20 @@ router.post('/', (req, res) => {
     try {
         var builder = main(apiOptions, taskDir, apiLogs);
     } catch (error) {
-        // delete task directory
-        fs.rmSync(taskDir, { recursive: true });
-
         // handle errors
         if (error.name === 'BuildLevelError' || error.name === 'HetaLevelError') {
             apiLogs.push(error.message);
             apiLogs.push('STOP!');
-            res.status(400).send({
+            res.status(422).send({ // same structure as 200
+                filepaths: filepaths,
+                taskId: uuid,
+                lifeend: deleteTime, // in seconds
                 logs: apiLogs,
             });
-            return;
+            return; // BREAK
         } else {
+            // delete task directory
+            fs.rmSync(taskDir, { recursive: true });
             throw error;
         }
     }
@@ -62,18 +76,8 @@ router.post('/', (req, res) => {
         apiLogs.push('Compilation OK!');
     }
 
-    // calculate time to delete
-    const currentTime = Math.floor(Date.now() / 1000);
-    const deleteTime = currentTime + apiOptions.lifetime;
-    // delete task directory after lifeTime
-    setTimeout(() => {
-        fs.rmSync(taskDir, { recursive: true });
-    }, apiOptions.lifetime * 1000);
-
-    
-
     res.send({
-        filepaths: [],
+        filepaths: filepaths,
         taskId: uuid,
         lifeend: deleteTime, // in seconds
         logs: apiLogs,
