@@ -4,10 +4,12 @@ const app = express();
 
 const emptyRoutes = require('./empty');
 const buildRoutes = require('./build');
+const filesRoutes = require('./files');
 
 app.use(express.json());
 
 // Load OpenAPI schema
+/*
 app.use(
     OpenApiValidator.middleware({
       apiSpec: './heta-api-schema.json',
@@ -15,14 +17,15 @@ app.use(
       //validateResponses: true, // good for debugging
     }),
 );
-
+*/
 // Register routes
 app.use('/', emptyRoutes);
 app.use('/build', buildRoutes);
+app.use('/files', filesRoutes);
 
 app.use((err, req, res, next) => {
   // dev mode
-  //throw err;
+  throw err;
 
   // error because of wrong input
   if (err.status === 400) {

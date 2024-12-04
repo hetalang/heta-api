@@ -37,11 +37,12 @@ router.post('/', (req, res) => {
 
     // calculate time to delete
     const currentTime = Math.floor(Date.now() / 1000);
-    const deleteTime = currentTime + apiOptions.lifetime;
+    const lifetime = apiOptions.lifetime || 3600;
+    const deleteTime = currentTime + lifetime;
     // delete task directory after lifeTime
     setTimeout(() => {
         fs.rmSync(taskDir, { recursive: true });
-    }, apiOptions.lifetime * 1000);
+    }, lifetime * 1000);
 
     // storage for logs
     // items as strings
@@ -60,6 +61,7 @@ router.post('/', (req, res) => {
                 taskId: uuid,
                 lifeend: deleteTime, // in seconds
                 logs: apiLogs,
+                downloadLink: `/files/${uuid}`,
             });
             return; // BREAK
         } else {
@@ -81,6 +83,7 @@ router.post('/', (req, res) => {
         taskId: uuid,
         lifeend: deleteTime, // in seconds
         logs: apiLogs,
+        downloadLink: `/files/${uuid}`,
     });
 });
 

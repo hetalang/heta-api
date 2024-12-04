@@ -199,7 +199,7 @@
           }
         }
       },
-      "/download/{taskId}": {
+      "/files/{taskId}": {
         "get": {
           "operationId": "downloadFiles",
           "summary": "Download compiled files",
