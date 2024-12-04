@@ -35,9 +35,10 @@ app.use((err, req, res, next) => {
     return;
   }
 
-  // production mode
+  // other errors
   res.status(err.status || 500).json({
-    message: 'Internal server error, contact the developers.'
+    message: err.message,
+    errors: err.errors,
   });
 });
 
