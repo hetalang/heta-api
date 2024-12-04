@@ -49,7 +49,7 @@ router.post('/', (req, res) => {
 
     // run build job
     try {
-        var builder = main(apiOptions, taskDir, apiLogs);
+        var builder = main(apiOptions, taskDir, apiLogs, filepaths);
     } catch (error) {
         // handle errors
         if (error.name === 'BuildLevelError' || error.name === 'HetaLevelError') {
@@ -92,7 +92,7 @@ class BuildLevelError extends Error {
     }
 }
 
-function main(apiOptions, targetDir, logs) {
+function main(apiOptions, targetDir, logs, filepaths) {
     // 0. empty declaration
     let declaration = {options: {}, importModule: {}, export: []};
 
@@ -135,11 +135,19 @@ function main(apiOptions, targetDir, logs) {
     apiOptions.export !== undefined && (declaration.export = apiOptions.export);
 
     // 3. run builder (set declaration defaults internally)
+    // helper function to store  all saved files paths
+    myOutputFileSync = (...args) => {
+        let result = fs.outputFileSync(...args);
+        filepaths.push(path.relative(targetDir, args[0]));
+
+        return result;
+    };
+
     let builder = new Builder(
         declaration,
         targetDir,
         fs.readFileSync,
-        fs.outputFileSync,
+        myOutputFileSync,
         [new StringTransport('info', logs)]
     ).run();
 
