@@ -8,6 +8,8 @@ const FILES = 'files';
 
 const router = express.Router();
 
+// wildcard is not supported by OpenAPI, so we need to use paths: src%2Findex.heta instead of src/index.heta
+// the alternative solution is to use a query parameter, e.g. /files/xxx-xxx-xxx?filepath=src/index.heta, but it has not been implemented here
 router.get('/:taskId/*', (req, res) => {
     const { taskId } = req.params;
     const filepath = req.params[0];

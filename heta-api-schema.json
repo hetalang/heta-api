@@ -209,22 +209,10 @@
               "name": "taskId",
               "in": "path",
               "required": true,
-              "description": "Task ID for getting files.",
+              "description": "Task ID for getting all files as ZIP.",
               "schema": {
                 "type": "string",
                 "example": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
-              }
-            },
-            {
-              "name": "filepaths",
-              "in": "query",
-              "description": "Filepaths to download or `null` for all files.",
-              "schema": {
-                "type": "array",
-                "nullable": true,
-                "items": { "type": "string" },
-                "example": ["dist/xlsx/table.xlsx", "dist/json/model.json"],
-                "default": null
               }
             }
           ],
@@ -250,6 +238,22 @@
                       "error": {
                         "type": "string",
                         "example": "Files are not found."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Internal Heta compiler error."
                       }
                     }
                   }
@@ -304,6 +308,80 @@
                       "error": {
                         "type": "string",
                         "example": "Files are not found."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/files/{taskId}/{filePath}": {
+        "get": {
+          "operationId": "downloadFile",
+          "summary": "Download file",
+          "description": "Download a file associated with a specific task ID and file path.",
+          "parameters": [
+            {
+              "name": "taskId",
+              "in": "path",
+              "required": true,
+              "description": "Unique task ID.",
+              "schema": {
+                "type": "string",
+                "example": "9cc63441-a35c-4e41-b62c-505532fd79a6"
+              }
+            },
+            {
+              "name": "filePath",
+              "in": "path",
+              "required": true,
+              "description": "Relative file path within the task directory. Must use URL encoding for slashes.",
+              "schema": {
+                "type": "string",
+                "example": "src%2Findex.heta"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "File is ready for download.",
+              "content": {
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "File is not found.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "File is not found."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Internal Heta compiler error."
                       }
                     }
                   }
