@@ -99,8 +99,9 @@ function main(apiOptions, targetDir, logs, filepaths) {
     // 1. declaration from file
     // search
     let searches = ['', '.json', '.yml']
-        .map((ext) => path.join(targetDir, (apiOptions.declaration || 'platform') + ext));
+        .map((ext) => (apiOptions.declaration || 'platform') + ext);
     let extensionNumber = searches
+        .map((filename) => path.join(targetDir, filename))
         .map((x) => fs.existsSync(x) && fs.statSync(x).isFile() ) // check if it exist and is file
         .indexOf(true);
     // is declaration file found ?
@@ -111,7 +112,7 @@ function main(apiOptions, targetDir, logs, filepaths) {
     } else {
         let declarationFile = searches[extensionNumber];
         logs.push(`Running compilation with declaration file "${declarationFile}"...`);
-        let declarationText = fs.readFileSync(declarationFile);
+        let declarationText = fs.readFileSync(path.join(targetDir, declarationFile));
         try {
             let declarationFromFile = YAML.load(declarationText);
             if (typeof declarationFromFile !== 'object'){
