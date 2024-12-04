@@ -110,12 +110,12 @@ function main(apiOptions, targetDir, logs) {
         throw new BuildLevelError(`Declaration file "${apiOptions.declaration}" not found. STOP!`);
     } else {
         let declarationFile = searches[extensionNumber];
-        logs.push(`Running compilation with declaration file "${path.resolve(declarationFile)}"...`);
+        logs.push(`Running compilation with declaration file "${declarationFile}"...`);
         let declarationText = fs.readFileSync(declarationFile);
         try {
             let declarationFromFile = YAML.load(declarationText);
             if (typeof declarationFromFile !== 'object'){
-                throw new Error('Not an object.');
+                throw new Error('Declaration file content must be an object.');
             }
             Object.assign(declaration, declarationFromFile);
         } catch (error) {

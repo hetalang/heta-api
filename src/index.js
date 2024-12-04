@@ -22,7 +22,7 @@ app.use('/build', buildRoutes);
 
 app.use((err, req, res, next) => {
   // dev mode
-  throw err;
+  //throw err;
 
   // error because of wrong input
   if (err.status === 400) {

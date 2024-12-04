@@ -163,41 +163,17 @@
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "error": {
+                      "name": {
+                        "type": "string",
+                        "example": "ValidationError"
+                      },
+                      "message": {
                         "type": "string",
                         "example": "Wrong format of export option."
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "413": {
-              "description": "Request entity too large. The request body is too large.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "error": {
-                        "type": "string",
-                        "example": "Request files too large."
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "429": {
-              "description": "Too many requests. The server is busy.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "error": {
-                        "type": "string",
-                        "example": "Too many requests. Try again later."
+                      },
+                      "errors": {
+                        "type": "array",
+                        "items": { "type": "string" }
                       }
                     }
                   }
@@ -211,7 +187,7 @@
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "error": {
+                      "message": {
                         "type": "string",
                         "example": "Internal Heta compiler error."
                       }
