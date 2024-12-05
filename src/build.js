@@ -6,12 +6,7 @@ const path = require('path');
 const YAML = require('js-yaml');
 
 // directory to store files
-const FILES = 'files';
-// empty content if exists or create
-if (fs.existsSync(FILES)) {
-    fs.rmSync(FILES, { recursive: true });
-}
-fs.mkdirSync(FILES);
+const FILES = process.env.FILES;
 
 const router = express.Router();
 

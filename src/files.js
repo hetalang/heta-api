@@ -4,7 +4,7 @@ const fs = require('fs');
 const archiver = require('archiver'); // To zip multiple files
 
 // directory to store files
-const FILES = 'files';
+const FILES = process.env.FILES;
 
 const router = express.Router();
 
@@ -43,7 +43,7 @@ router.get('/:taskId/*', (req, res) => {
 
 router.get('/:taskId', (req, res) => {
     const { taskId } = req.params;
-    const taskDir = path.join(FILES, taskId);
+    const taskDir = path.resolve(FILES, taskId);
 
     if (!fs.existsSync(taskDir)) {
         res.status(404).json({

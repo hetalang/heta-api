@@ -2,6 +2,19 @@ const express = require('express');
 const OpenApiValidator = require('express-openapi-validator');
 const app = express();
 
+const fs = require('fs');
+
+require('dotenv').config();
+
+// directory to store files
+const FILES = process.env.FILES;
+
+// empty content if exists or create
+if (fs.existsSync(FILES)) {
+    fs.rmSync(FILES, { recursive: true });
+}
+fs.mkdirSync(FILES);
+
 const emptyRoutes = require('./empty');
 const buildRoutes = require('./build');
 const filesRoutes = require('./files');
