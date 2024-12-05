@@ -13,7 +13,19 @@ const router = express.Router();
 router.get('/:taskId/*', (req, res) => {
     const { taskId } = req.params;
     const filepath = req.params[0];
-    const absolutePath = path.join(FILES, taskId, filepath);
+    
+    // Base and resolved path
+    const basePath = path.resolve(FILES, taskId);
+    const absolutePath = path.resolve(basePath, filepath);
+
+    // check the user in allowed directory
+    if (!absolutePath.startsWith(basePath)) {
+        console.warn(`Unauthorized access attempt: ${absolutePath}`);
+        res.status(403).json({
+            message: 'Access denied.'
+        });
+        return;
+    }
     
     if (!fs.existsSync(absolutePath)) {
         res.status(404).json({
