@@ -10,7 +10,7 @@ app.use(express.json());
 // Load OpenAPI schema
 app.use(
     OpenApiValidator.middleware({
-      apiSpec: './heta-api-schema.json',
+      apiSpec: __dirname + '/../heta-api-schema.json',
       validateRequests: true, // (default)
       //validateResponses: true, // good for debugging
     }),

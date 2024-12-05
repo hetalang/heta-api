@@ -23,6 +23,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["files"],
                   "properties": {
                     "lifetime": {
                       "type": "number",
@@ -32,6 +33,7 @@
                     "files": {
                       "type": "array",
                       "description": "Array of files of platform.",
+                      "minItems": 1,
                       "items": { "$ref": "#/components/schemas/File" },
                       "example": [
                         {
@@ -507,7 +509,7 @@
             "format": {
               "type": "string",
               "enum": ["binary", "utf8"],
-              "default": "text",
+              "default": "utf8",
               "description": "The type of file for compilation."
             },
             "filebody": {
