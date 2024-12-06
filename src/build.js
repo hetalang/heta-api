@@ -15,8 +15,8 @@ router.post('/', (req, res) => {
 
     // create directory for the task
     const uuid = uuidv4();
-    const taskDir = path.join(FILES, uuid);
-    fs.mkdirSync(taskDir);
+    const basePath = path.resolve(FILES, uuid);
+    fs.mkdirSync(basePath);
 
     // create filepaths
     let filepaths = [];
@@ -24,7 +24,16 @@ router.post('/', (req, res) => {
     // copy files to the task directory
     // {filpath: 'path/to/file', format: 'binary', filebody: 'content'}
     apiOptions.files?.forEach((file) => {
-        const filepath = path.join(taskDir, file.filepath);
+        const filepath = path.resolve(basePath, file.filepath);
+        
+        // check the user in allowed directory
+        if (!filepath.startsWith(basePath)) {
+            let err = new Error(`Access denied for ${file.filepath}.`);
+            err.status = 403;
+            err.absolutePath = filepath;
+            throw err;
+        }
+
         // write file and create directories if not exist
         fs.outputFileSync(filepath, file.filebody, file.format);
         filepaths.push(file.filepath);
@@ -36,7 +45,7 @@ router.post('/', (req, res) => {
     const deleteTime = currentTime + lifetime;
     // delete task directory after lifeTime
     setTimeout(() => {
-        fs.rmSync(taskDir, { recursive: true });
+        fs.rmSync(basePath, { recursive: true });
     }, lifetime * 1000);
 
     // storage for logs
@@ -45,7 +54,7 @@ router.post('/', (req, res) => {
 
     // run build job
     try {
-        var builder = main(apiOptions, taskDir, apiLogs, filepaths);
+        var builder = main(apiOptions, basePath, apiLogs, filepaths);
     } catch (error) {
         // handle errors
         if (error.name === 'BuildLevelError' || error.name === 'HetaLevelError') {
@@ -61,7 +70,7 @@ router.post('/', (req, res) => {
             return; // BREAK
         } else {
             // delete task directory
-            fs.rmSync(taskDir, { recursive: true });
+            fs.rmSync(basePath, { recursive: true });
             throw error;
         }
     }
@@ -135,17 +144,45 @@ function main(apiOptions, targetDir, logs, filepaths) {
 
     // 3. run builder (set declaration defaults internally)
     // helper function to store  all saved files paths
+    // !!! do not allow to work outside targetDir
     myOutputFileSync = (...args) => {
+        let absolutePath = path.resolve(args[0]);
+        let relativePath = path.relative(targetDir, args[0])
+
+        // check the user in allowed directory
+        if (!absolutePath.startsWith(targetDir)) {
+            let err = new Error(`Access denied for ${relativePath}.`);
+            err.status = 403;
+            err.absolutePath = absolutePath;
+            throw err;
+        }
+        
         let result = fs.outputFileSync(...args);
-        filepaths.push(path.relative(targetDir, args[0]));
+        
+        filepaths.push(relativePath);
 
         return result;
+    };
+
+    myInputFileSync = (...args) => {
+        let absolutePath = path.resolve(args[0]);
+        let relativePath = path.relative(targetDir, args[0])
+
+        // check the user in allowed directory
+        if (!absolutePath.startsWith(targetDir)) {
+            let err = new Error(`Access denied for ${relativePath}.`);
+            err.status = 403;
+            err.absolutePath = absolutePath;
+            throw err;
+        }
+
+        return fs.readFileSync(...args);
     };
 
     let builder = new Builder(
         declaration,
         targetDir,
-        fs.readFileSync,
+        myInputFileSync,
         myOutputFileSync,
         [new StringTransport('info', logs)]
     ).run();

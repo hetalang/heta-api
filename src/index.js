@@ -48,6 +48,15 @@ app.use((err, req, res, next) => {
     return;
   }
 
+  // access denied
+  if (err.status === 403) {
+    console.warn(`Unauthorized access attempt: ${err.absolutePath}`);
+    res.status(err.status).json({
+      message: err.message
+    });
+    return;
+  }
+
   // other errors
   res.status(err.status || 500).json({
     message: err.message,

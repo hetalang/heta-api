@@ -20,11 +20,10 @@ router.get('/:taskId/*', (req, res) => {
 
     // check the user in allowed directory
     if (!absolutePath.startsWith(basePath)) {
-        console.warn(`Unauthorized access attempt: ${absolutePath}`);
-        res.status(403).json({
-            message: 'Access denied.'
-        });
-        return;
+        let err = new Error(`Access denied for ${filepath}.`);
+        err.status = 403;
+        err.absolutePath = absolutePath;
+        throw err;
     }
     
     if (!fs.existsSync(absolutePath)) {
