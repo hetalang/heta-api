@@ -203,124 +203,6 @@
       },
       "/files/{taskId}": {
         "get": {
-          "operationId": "downloadFiles",
-          "summary": "Download compiled files",
-          "description": "Download compiled files by task ID.",
-          "parameters": [
-            {
-              "name": "taskId",
-              "in": "path",
-              "required": true,
-              "description": "Task ID for getting all files as ZIP.",
-              "schema": {
-                "type": "string",
-                "example": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Files are ready for download.",
-              "content": {
-                "application/zip": {
-                  "schema": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Files are not found.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "error": {
-                        "type": "string",
-                        "example": "Files are not found."
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "500": {
-              "description": "Internal server error.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string",
-                        "example": "Internal Heta compiler error."
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "delete": {
-          "operationId": "deleteFiles",
-          "summary": "Delete compiled files",
-          "description": "Delete compiled files by task ID.",
-          "parameters": [
-            {
-              "name": "taskId",
-              "in": "path",
-              "required": true,
-              "description": "Task ID for getting files.",
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Files are deleted.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "statusCode": {
-                        "type": "number",
-                        "example": 0
-                      },
-                      "status": {
-                        "type": "string",
-                        "example": "Files are deleted."
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Files are not found.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "error": {
-                        "type": "string",
-                        "example": "Files are not found."
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/files/{taskId}/{filePath}": {
-        "get": {
           "operationId": "downloadFile",
           "summary": "Download file",
           "description": "Download a file associated with a specific task ID and file path.",
@@ -336,13 +218,14 @@
               }
             },
             {
-              "name": "filePath",
-              "in": "path",
+              "name": "filepath",
+              "in": "query",
               "required": true,
-              "description": "Relative file path within the task directory. Must use URL encoding for slashes.",
+              "allowReserved": true,
+              "description": "Relative file path within the task directory or * to download all as zip file.",
               "schema": {
                 "type": "string",
-                "example": "src%2Findex.heta"
+                "example": "src/index.heta"
               }
             }
           ],

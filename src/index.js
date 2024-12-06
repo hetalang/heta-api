@@ -21,6 +21,7 @@ const filesRoutes = require('./files');
 
 app.use(express.json());
 // Load OpenAPI schema
+
 app.use(
     OpenApiValidator.middleware({
       apiSpec: __dirname + '/../heta-api-schema.json',

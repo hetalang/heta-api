@@ -8,69 +8,67 @@ const FILES = process.env.FILES;
 
 const router = express.Router();
 
-// wildcard is not supported by OpenAPI, so we need to use paths: src%2Findex.heta instead of src/index.heta
-// the alternative solution is to use a query parameter, e.g. /files/xxx-xxx-xxx?filepath=src/index.heta, but it has not been implemented here
-router.get('/:taskId/*', (req, res) => {
-    const { taskId } = req.params;
-    const filepath = req.params[0];
-    
-    // Base and resolved path
-    const basePath = path.resolve(FILES, taskId);
-    const absolutePath = path.resolve(basePath, filepath);
-
-    // check the user in allowed directory
-    if (!absolutePath.startsWith(basePath)) {
-        let err = new Error(`Access denied for ${filepath}.`);
-        err.status = 403;
-        err.absolutePath = absolutePath;
-        throw err;
-    }
-    
-    if (!fs.existsSync(absolutePath)) {
-        res.status(404).json({
-            message: 'File not found.'
-        });
-        return; // BREAK
-    }
-
-    res.download(absolutePath, path.basename(filepath), (err) => {
-        err && res.status(500).json({
-            message: 'Failed to send the file.'
-        });
-    });
-});
-
+// /files/xxx-xxx-xxx?filepath=src/index.heta
+// /files/xxx-xxx-xxx?filepath=*
 router.get('/:taskId', (req, res) => {
     const { taskId } = req.params;
-    const taskDir = path.resolve(FILES, taskId);
+    const { filepath } = req.query;
 
-    if (!fs.existsSync(taskDir)) {
+    const basePath = path.resolve(FILES, taskId);
+
+    if (!fs.existsSync(basePath)) {
         res.status(404).json({
             message: 'Task not found.'
         });
         return; // BREAK
     }
 
-    let selectedFiles = getFilesRecursivelySync(taskDir);
+    if (filepath !== '*') {
+        // resolved path
+        const absolutePath = path.resolve(basePath, filepath);
 
-    // prepare headers
-    res.set({
-        'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${taskId}.zip"`,
-    });
+        // check the user in allowed directory
+        if (!absolutePath.startsWith(basePath)) {
+            let err = new Error(`Access denied for ${filepath}.`);
+            err.status = 403;
+            err.absolutePath = absolutePath;
+            throw err;
+        }
+        
+        if (!fs.existsSync(absolutePath)) {
+            res.status(404).json({
+                message: 'File not found.'
+            });
+            return; // BREAK
+        }
 
-    // preparing archive
-    const archive = archiver('zip');
-    archive.on('error', (err) => {
-        res.status(500).send({
-            message: err.message 
+        res.download(absolutePath, path.basename(filepath), (err) => {
+            err && res.status(500).json({
+                message: 'Failed to send the file.'
+            });
         });
-    });
-    archive.pipe(res);
-    selectedFiles.forEach((file) => {
-        archive.file(file, { name: path.relative(taskDir, file) });
-    });
-    archive.finalize();
+    } else {
+        let selectedFiles = getFilesRecursivelySync(basePath);
+
+        // prepare headers
+        res.set({
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="${taskId}.zip"`,
+        });
+    
+        // preparing archive
+        const archive = archiver('zip');
+        archive.on('error', (err) => {
+            res.status(500).send({
+                message: err.message 
+            });
+        });
+        archive.pipe(res);
+        selectedFiles.forEach((file) => {
+            archive.file(file, { name: path.relative(basePath, file) });
+        });
+        archive.finalize();
+    }
 });
 
 function getFilesRecursivelySync(dirPath) {
