@@ -16,7 +16,7 @@
         "post": {
           "operationId": "buildPlatform",
           "summary": "Trigger platform compilation",
-          "description": "Compiles a Heta-based platform and generates export files.",
+          "description": "Compiles a Heta-based platform and generates export files. It works synchronously and returns the result immediately. The result includes the list of generated files and logs. The files will be deleted after a certain time.",
           "requestBody": {
             "required": true,
             "content": {
@@ -28,7 +28,7 @@
                     "lifetime": {
                       "type": "number",
                       "default": 3600,
-                      "description": "Time in seconds for keeping files on the server."
+                      "description": "Time in seconds for keeping files on the server. It is related to the task ID. Default is 1 hour."
                     },
                     "files": {
                       "type": "array",
@@ -50,12 +50,12 @@
                     },
                     "declaration": {
                       "type": "string",
-                      "description": "The filepath to declaration file without extension. The command will search the declaration file based on option trying a set of extensions: .json/.yml.",
+                      "description": "The filepath to declaration file without extension. The command will search the declaration file based on option trying a set of extensions: .json/.yml. If omitted the command will search for the \"platform\" file in the root dir. If default file is not found the default units will be used.",
                       "example": "platform1"
                     },
                     "source": {
                       "type": "string",
-                      "description": "Index file for compilation.",
+                      "description": "Index file for compilation. Can e stated in API, declarion file or the compiler will use default path index.heta",
                       "example": "index.heta"
                     },
                     "type": {
@@ -66,7 +66,7 @@
                     },
                     "unitsCheck": {
                       "type": "boolean",
-                      "description": "Check for unit consistency."
+                      "description": "Check for unit consistency. If 'true' the command will check the units consistency in the platform. If 'false' (default) the command will skip the units check."
                     },
                     "debug": {
                       "type": "boolean",
@@ -74,11 +74,11 @@
                     },
                     "distDir": {
                       "type": "string",
-                      "description": "Path for saving exported files."
+                      "description": "Path for saving exported files as stated in 'export' option."
                     },
                     "metaDir": {
                       "type": "string",
-                      "description": "Path for saving metadata."
+                      "description": "Path for saving metadata. Used for debugging when option 'debug: true'."
                     },
                     "logMode": {
                       "type": "string",
@@ -88,6 +88,29 @@
                     "export": {
                       "$ref": "#/components/schemas/Export"
                     }
+                  },
+                  "example": {
+                    "lifetime": 1800,
+                    "files": [
+                      {
+                        "filepath": "index.heta",
+                        "format": "utf8",
+                        "filebody": "x1 @Record := 1.2;\n\nc1 @Compartment .= 5;"
+                      }
+                    ],
+                    "unitsCheck": true,
+                    "export": [
+                      { "format": "JSON" },
+                      { "format": "YAML" },
+                      { "format": "DBSolve", "version": "25" },
+                      { "format": "SBML", "version": "L3V2" },
+                      { "format": "Simbio" },
+                      { "format": "Mrgsolve" },
+                      { "format": "Table", "splitByClass": true, "omitRows": 3, "bookType": "xlsx" },
+                      { "format": "Matlab" },
+                      { "format": "Dot" },
+                      { "format": "Summary" }
+                    ]
                   }
                 }
               }
@@ -121,13 +144,29 @@
                         "description": "Time when files will be deleted in Unix timestamp seconds format.",
                         "example": 1634025600
                       }
+                    },
+                    "example": {
+                      "filepaths": [
+                        "index.heta",
+                        "dist/json/model.json",
+                        "dist/yaml/model.yaml",
+                        "dist/dbsolve/model.slv",
+                        "dist/sbml/model.xml",
+                        "dist/simbio/model.m",
+                        "dist/mrgsolve/model.cpp",
+                        "dist/mrgsolve/run.R",
+                        "dist/table/model.xlsx"
+                      ],
+                      "logs": ["Compilation finished successfully."],
+                      "taskId": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
+                      "lifeend": 1634025600
                     }
                   }
                 }
               }
             },
             "422": {
-              "description": "Unprocessable entity. The request is well-formed but unable to process.",
+              "description": "Unprocessable entity. The request is well-formed but unable to process. Compilation finished but with errors. This is usually because of platform files misconfiguration not related to the compiler or API.",
               "content": {
                 "application/json": {
                   "schema": {
@@ -159,7 +198,7 @@
               }
             },
             "400": {
-              "description": "Invalid request parameters. Request structure do not match the schema.",
+              "description": "Invalid request parameters. Request structure do not match the schema. Issues with user's API request.",
               "content": {
                 "application/json": {
                   "schema": {
@@ -183,7 +222,7 @@
               }
             },
             "500": {
-              "description": "Internal server error.",
+              "description": "Internal server error. Some critical error occurred during compilation. Problem with heta-compiler or api application development.",
               "content": {
                 "application/json": {
                   "schema": {
@@ -222,7 +261,7 @@
               "in": "query",
               "required": true,
               "allowReserved": true,
-              "description": "Relative file path within the task directory or * to download all as zip file.",
+              "description": "Relative file path within the task directory or * to download all files as ZIP file.",
               "schema": {
                 "type": "string",
                 "example": "src/index.heta"
@@ -258,7 +297,7 @@
               }
             },
             "500": {
-              "description": "Internal server error.",
+              "description": "Internal server error. Problem in api application developed.",
               "content": {
                 "application/json": {
                   "schema": {
@@ -266,7 +305,7 @@
                     "properties": {
                       "message": {
                         "type": "string",
-                        "example": "Internal Heta compiler error."
+                        "example": "Unknown error."
                       }
                     }
                   }
@@ -331,18 +370,20 @@
       "schemas": {
         "Export": {
           "type": "array",
-          "description": "Export formats in JSON.",
+          "default": [],
+          "description": "Array of export formats. If omitted nothing wll be exported which is useful for testing correctness of platform.",
           "items": {
             "type": "object",
+            "required": ["format"],
             "properties": {
               "format": {
                 "type": "string",
                 "enum": ["JSON", "YAML", "DBSolve", "SLV", "SBML", "Simbio", "Mrgsolve", "Table", "XLSX", "Julia", "Matlab", "Dot", "Summary"],
-                "description": "The type of file for compilation."
+                "description": "The type of file for compilation. Case sensitive."
               },
               "filepath": {
                 "type": "string",
-                "description": "Path for saving exported files.",
+                "description": "Path for saving exported files. If omitted the files will be saved in the directory name depending on the format.",
                 "example": "model"
               },
               "spaceFilter": {
