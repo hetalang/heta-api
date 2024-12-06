@@ -1,5 +1,7 @@
 # Heta API
 
+This is part of the Heta project. See documentation at <https://hetalang.github.io>.
+
 This is the API for compilation Heta based platforms.
 
 Authentication is not required.
@@ -18,6 +20,12 @@ Receive compilation logs and a taskId for download the result.
 Send taskId and filenames to download.
 
 ### /download/{taskId} (DELETE)
+
+Not implemented yet.
+
+### /schema (GET)
+
+get OpenAPI schema.
 
 ### / (GET)
 
