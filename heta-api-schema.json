@@ -74,11 +74,11 @@
                     },
                     "distDir": {
                       "type": "string",
-                      "description": "Path for saving exported files as stated in 'export' option."
+                      "description": "Path for saving exported files as stated in 'export' option. If skipped 'dist' will be used."
                     },
                     "metaDir": {
                       "type": "string",
-                      "description": "Path for saving metadata. Used for debugging when option 'debug: true'."
+                      "description": "Path for saving metadata. Used for debugging when option 'debug: true'. If skipped 'meta' will be used."
                     },
                     "logMode": {
                       "type": "string",
