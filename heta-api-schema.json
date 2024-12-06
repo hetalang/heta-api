@@ -307,6 +307,24 @@
             }
           }
         }
+      },
+      "/schema": {
+        "get": {
+          "operationId": "getSchema",
+          "description": "Get the OpenAPI schema for the Heta Compiler API.",
+          "responses": {
+            "200": {
+              "description": "OpenAPI schema for the Heta Compiler API.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "components": {

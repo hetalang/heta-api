@@ -18,6 +18,7 @@ fs.mkdirSync(FILES);
 const emptyRoutes = require('./empty');
 const buildRoutes = require('./build');
 const filesRoutes = require('./files');
+const schemaRoutes = require('./schema');
 
 app.use(express.json());
 // Load OpenAPI schema
@@ -34,6 +35,7 @@ app.use(
 app.use('/', emptyRoutes);
 app.use('/build', buildRoutes);
 app.use('/files', filesRoutes);
+app.use('/schema', schemaRoutes);
 
 app.use((err, req, res, next) => {
   // dev mode

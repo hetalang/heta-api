@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
     description: 'API connector for Heta compiler',
     version: version,
     node: process.version,
+    schema: '/schema'
   });
 });
 
