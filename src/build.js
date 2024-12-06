@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { Builder, StringTransport } = require('heta-compiler');
 const fs = require('fs-extra');
 const path = require('path');
-const YAML = require('js-yaml');
+//const YAML = require('js-yaml');
 
 // directory to store files
 const FILES = process.env.FILES;
@@ -100,51 +100,19 @@ class BuildLevelError extends Error {
 }
 
 function main(apiOptions, targetDir, logs, filepaths) {
-    // 0. empty declaration
-    let declaration = {options: {}, importModule: {}, export: []};
 
-    // 1. declaration from file
-    // search
-    let searches = ['', '.json', '.yml']
-        .map((ext) => (apiOptions.declaration || 'platform') + ext);
-    let extensionNumber = searches
-        .map((filename) => path.join(targetDir, filename))
-        .map((x) => fs.existsSync(x) && fs.statSync(x).isFile() ) // check if it exist and is file
-        .indexOf(true);
-    // is declaration file found ?
-    if (!apiOptions.declaration && extensionNumber === -1) {
-        logs.push('No declaration file, running with defaults...');
-    } else if (extensionNumber === -1) {
-        throw new BuildLevelError(`Declaration file "${apiOptions.declaration}" not found. STOP!`);
-    } else {
-        let declarationFile = searches[extensionNumber];
-        logs.push(`Running compilation with declaration file "${declarationFile}"...`);
-        let declarationText = fs.readFileSync(path.join(targetDir, declarationFile));
-        try {
-            let declarationFromFile = YAML.load(declarationText);
-            if (typeof declarationFromFile !== 'object'){
-                throw new Error('Declaration file content must be an object.');
-            }
-            Object.assign(declaration, declarationFromFile);
-        } catch (error) {
-            throw new BuildLevelError(`Wrong format of declaration file: \n"${error.message}"`);
-        }
-    }
+    // declaration is not empty because it is generated from defaults by the scheme
+    let declaration = apiOptions.declaration || {};  // the last part is just for sure
 
-    // 2. declaration from cli
-    // update declaration
-    apiOptions.unitsCheck !== undefined && (declaration.options.unitsCheck = apiOptions.unitsCheck);
-    apiOptions.logMode !== undefined && (declaration.options.logMode = apiOptions.logMode);
-    apiOptions.debug !== undefined && (declaration.options.debug = apiOptions.debug);
-    apiOptions.distDir !== undefined && (declaration.options.distDir = apiOptions.distDir);
-    apiOptions.metaDir !== undefined && (declaration.options.metaDir = apiOptions.metaDir);
-    apiOptions.source !== undefined && (declaration.importModule.source = apiOptions.source);
-    apiOptions.type !== undefined && (declaration.importModule.type = apiOptions.type);
-    apiOptions.export !== undefined && (declaration.export = apiOptions.export);
+    // declaration file is not used in API but it generated from apiOptions
+    logs.push(`Running compilation with declaration file "platform.yml"...`);    
 
-    // 3. run builder (set declaration defaults internally)
+    // save declaration file
+    let declarationPath = path.resolve(targetDir, 'platform.yml');
+    fs.outputFileSync(declarationPath, JSON.stringify(declaration, null, 2)); // YAML.dump(declaration)
+    filepaths.push('platform.yml');
+    
     // helper function to store  all saved files paths
-    // !!! do not allow to work outside targetDir
     myOutputFileSync = (...args) => {
         let absolutePath = path.resolve(args[0]);
         let relativePath = path.relative(targetDir, args[0])
@@ -178,6 +146,8 @@ function main(apiOptions, targetDir, logs, filepaths) {
 
         return fs.readFileSync(...args);
     };
+
+    // run builder (set declaration defaults internally)
 
     let builder = new Builder(
         declaration,

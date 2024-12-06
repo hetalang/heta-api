@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
       "title": "Heta Compiler API",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "API for interacting with the Heta Compiler via HTTP."
     },
     "servers": [
@@ -37,11 +37,6 @@
                       "items": { "$ref": "#/components/schemas/File" },
                       "example": [
                         {
-                          "filepath": "platform.yml",
-                          "format": "binary",
-                          "filebody": "<base64-encoded file content>"
-                        },
-                        {
                           "filepath": "index.heta",
                           "format": "utf8",
                           "filebody": "include model.heta;\n\n"
@@ -49,44 +44,76 @@
                       ]
                     },
                     "declaration": {
-                      "type": "string",
-                      "description": "The filepath to declaration file without extension. The command will search the declaration file based on option trying a set of extensions: .json/.yml. If omitted the command will search for the \"platform\" file in the root dir. If default file is not found the default units will be used.",
-                      "example": "platform1"
-                    },
-                    "source": {
-                      "type": "string",
-                      "description": "Index file for compilation. Can e stated in API, declarion file or the compiler will use default path index.heta",
-                      "example": "index.heta"
-                    },
-                    "type": {
-                      "type": "string",
-                      "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
-                      "description": "The type of file for compilation.",
-                      "example": "heta"
-                    },
-                    "unitsCheck": {
-                      "type": "boolean",
-                      "description": "Check for unit consistency. If 'true' the command will check the units consistency in the platform. If 'false' (default) the command will skip the units check."
-                    },
-                    "debug": {
-                      "type": "boolean",
-                      "description": "Enable debugging mode."
-                    },
-                    "distDir": {
-                      "type": "string",
-                      "description": "Path for saving exported files as stated in 'export' option. If skipped 'dist' will be used."
-                    },
-                    "metaDir": {
-                      "type": "string",
-                      "description": "Path for saving metadata. Used for debugging when option 'debug: true'. If skipped 'meta' will be used."
-                    },
-                    "logMode": {
-                      "type": "string",
-                      "enum": ["never", "error", "always"],
-                      "description": "When to create a log file."
-                    },
-                    "export": {
-                      "$ref": "#/components/schemas/Export"
+                      "type": "object",
+                      "description": "Structure describing the platform compilation. This is an analogue of the platform declaration file. If omitted, the compiler will use the default options.",
+                      "properties": {
+                        "importModule": {
+                          "type": "object",
+                          "description": "Import entry point module for compilation.",
+                          "required": ["source"],
+                          "properties": {
+                            "source": {
+                              "type": "string",
+                              "description": "Index file for compilation. The file should be included in 'files'. It is an entry point for compilation.",
+                              "default": "index.heta",
+                              "example": "src/index.heta"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
+                              "description": "The format of source file for compilation.",
+                              "default": "heta",
+                              "example": "json"
+                            }
+                          }
+                        },
+                        "options": {
+                          "type": "object",
+                          "description": "Compilation options.",
+                          "properties": {
+                            "unitsCheck": {
+                              "type": "boolean",
+                              "default": false,
+                              "description": "Check for unit consistency. If 'true' the command will check the units consistency in the platform. If 'false' (default) the command will skip the units check."
+                            },
+                            "debug": {
+                              "type": "boolean",
+                              "description": "Enable debugging mode. In debug mode, the compiler will save additional files in 'metaDir' for debugging purposes.", 
+                              "default": false
+                            },
+                            "distDir": {
+                              "type": "string",
+                              "description": "Path for saving exported files as stated in 'export' option.",
+                              "default": "dist"
+                            },
+                            "metaDir": {
+                              "type": "string",
+                              "description": "Path for saving metadata. Used for debugging when option 'debug: true'.",
+                              "default": "meta"
+                            },
+                            "logMode": {
+                              "type": "string",
+                              "enum": ["never", "error", "always"],
+                              "description": "Level at which log file will be generated and saved. 'never' - no logs, 'error' - only errors, 'always' - all logs.",
+                              "default": "error"
+                            },
+                            "logPath": {
+                              "type": "string",
+                              "description": "Path for saving log file.",
+                              "default": "build.log"
+                            },
+                            "logFormat": {
+                              "type": "string",
+                              "description": "Format of log file. 'json' - JSON format, 'text' - plain text format.",
+                              "enum": ["json", "string"],
+                              "default": "string"
+                            }
+                          }
+                        },
+                        "export": {
+                          "$ref": "#/components/schemas/Export"
+                        }
+                      }
                     }
                   },
                   "example": {
@@ -98,19 +125,29 @@
                         "filebody": "x1 @Record := 1.2;\n\nc1 @Compartment .= 5;"
                       }
                     ],
-                    "unitsCheck": true,
-                    "export": [
-                      { "format": "JSON" },
-                      { "format": "YAML" },
-                      { "format": "DBSolve", "version": "25" },
-                      { "format": "SBML", "version": "L3V2" },
-                      { "format": "Simbio" },
-                      { "format": "Mrgsolve" },
-                      { "format": "Table", "splitByClass": true, "omitRows": 3, "bookType": "xlsx" },
-                      { "format": "Matlab" },
-                      { "format": "Dot" },
-                      { "format": "Summary" }
-                    ]
+                    "declaration": {
+                      "importModule": {
+                        "source": "index.heta",
+                        "type": "heta"
+                      },
+                      "unitsCheck": true,  
+                      "debug": false,
+                      "distDir": "dist",
+                      "metaDir": "meta",
+                      "logMode": "error",
+                      "export": [
+                        { "format": "JSON" },
+                        { "format": "YAML" },
+                        { "format": "DBSolve", "version": "25" },
+                        { "format": "SBML", "version": "L3V2" },
+                        { "format": "Simbio" },
+                        { "format": "Mrgsolve" },
+                        { "format": "Table", "splitByClass": true, "omitRows": 3, "bookType": "xlsx" },
+                        { "format": "Matlab" },
+                        { "format": "Dot" },
+                        { "format": "Summary" }
+                      ]
+                    }
                   }
                 }
               }
