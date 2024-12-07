@@ -15,7 +15,7 @@ if (fs.existsSync(FILES)) {
 }
 fs.mkdirSync(FILES);
 
-const emptyRoutes = require('./empty');
+const infoRoutes = require('./info');
 const buildRoutes = require('./build');
 const downloadRoutes = require('./download');
 const schemaRoutes = require('./schema');
@@ -32,7 +32,7 @@ app.use(
 );
 
 // Register routes
-app.use('/', emptyRoutes);
+app.use('/info', infoRoutes);
 app.use('/build', buildRoutes);
 app.use('/download', downloadRoutes);
 app.use('/schema', schemaRoutes);

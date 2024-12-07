@@ -341,7 +341,7 @@
           }
         }
       },
-      "/": {
+      "/info": {
         "get": {
           "operationId": "getInfo",
           "description": "Check connectivity and get information about the Heta Compiler.",
