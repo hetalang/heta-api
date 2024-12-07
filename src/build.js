@@ -54,7 +54,7 @@ router.post('/', (req, res) => {
 
     // run build job
     try {
-        var builder = main(apiOptions, basePath, apiLogs, filepaths);
+        var builder = main(apiOptions.declaration || {}, basePath, apiLogs, filepaths);
     } catch (error) {
         // handle errors
         if (error.name === 'BuildLevelError' || error.name === 'HetaLevelError') {
@@ -65,7 +65,7 @@ router.post('/', (req, res) => {
                 taskId: uuid,
                 lifeend: deleteTime, // in seconds
                 logs: apiLogs,
-                downloadLink: `/files/${uuid}`,
+                downloadLink: `/download/${uuid}`,
             });
             return; // BREAK
         } else {
@@ -87,7 +87,7 @@ router.post('/', (req, res) => {
         taskId: uuid,
         lifeend: deleteTime, // in seconds
         logs: apiLogs,
-        downloadLink: `/files/${uuid}`,
+        downloadLink: `/download/${uuid}`,
     });
 });
 
@@ -99,10 +99,8 @@ class BuildLevelError extends Error {
     }
 }
 
-function main(apiOptions, targetDir, logs, filepaths) {
-
-    // declaration is not empty because it is generated from defaults by the scheme
-    let declaration = apiOptions.declaration || {};  // the last part is just for sure
+// take declaration and run build
+function main(declaration, targetDir, logs, filepaths) {
 
     // declaration file is not used in API but it generated from apiOptions
     logs.push(`Running compilation with declaration file "platform.yml"...`);    

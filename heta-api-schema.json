@@ -277,7 +277,7 @@
           }
         }
       },
-      "/files/{taskId}": {
+      "/download/{taskId}": {
         "get": {
           "operationId": "downloadFile",
           "summary": "Download file",
@@ -291,17 +291,6 @@
               "schema": {
                 "type": "string",
                 "example": "9cc63441-a35c-4e41-b62c-505532fd79a6"
-              }
-            },
-            {
-              "name": "filepath",
-              "in": "query",
-              "required": true,
-              "allowReserved": true,
-              "description": "Relative file path within the task directory or * to download all files as ZIP file.",
-              "schema": {
-                "type": "string",
-                "example": "src/index.heta"
               }
             }
           ],
@@ -426,7 +415,7 @@
               },
               "filepath": {
                 "type": "string",
-                "description": "Path for saving exported files. If omitted the files will be saved in the directory name depending on the format.",
+                "description": "Path for saving exported files. Do use it until you need to save files in different directories.",
                 "example": "model"
               },
               "spaceFilter": {
