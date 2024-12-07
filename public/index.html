@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy</title>
+</head>
+<body>
+    <h1>Heta compiler API</h1>
+
+    <h2>Introduction</h2>
+
+    <i>This is part of <a href="https://hetalang.github.io">the Heta project</a>.</i> 
+
+    <h2>Entry points</h2>
+    <ul>
+        <li>"/build": build your platform</li>
+        <li>"/info": information about infrastructure</li>
+        <li>"/download": To download content</li>
+        <li>"/schema": OpenAPI 3.0.0 schema for the API</li>
+    </ul>
+    
+    <h2>See also</h2>
+    <p>
+    <a href="/privacy.html">Privacy Policy</a></li>
+    </p>
+
+    
+    <h2>API description</h2>
+
+    <p>The Heta Compiler API allows users to compile Heta platforms, customize the compilation process, and generate export files in various formats.</p>
+    <p><strong>Base URL:</strong> <a href="https://heta-api.insysbio.com" target="_blank">https://heta-api.insysbio.com</a></p>
+    <p><strong>Version:</strong> 0.1.1</p>
+
+    <div class="endpoint">
+        <h2>1. Compile a Platform</h2>
+        <p><strong>POST</strong> <code>/build</code></p>
+        <p>Compiles a Heta platform and generates export files based on the provided configuration.</p>
+        <h3>Request Body Parameters</h3>
+        <ul>
+            <li><strong>lifetime</strong> (optional, number): Time in seconds to keep generated files on the server. Default: <code>3600</code>.</li>
+            <li><strong>files</strong> (required, array): List of platform files to be compiled. Each file must include:</li>
+            <pre><code>{
+    "filepath": "index.heta",
+    "format": "utf8",
+    "filebody": "include model.heta;"
+}</code></pre>
+            <li><strong>declaration</strong> (optional, object): Describes the compilation process with options for file format, debugging, logs, and export formats.</li>
+        </ul>
+        <h3>Example Request</h3>
+        <pre><code>{
+    "lifetime": 1800,
+    "files": [
+        {
+            "filepath": "index.heta",
+            "format": "utf8",
+            "filebody": "x1 @Record := 1.2;"
+        }
+    ],
+    "declaration": {
+        "importModule": {
+            "source": "index.heta",
+            "type": "heta"
+        },
+        "options": {
+            "unitsCheck": true,
+            "debug": false,
+            "logMode": "error"
+        },
+        "export": [
+            { "format": "JSON" },
+            { "format": "YAML" }
+        ]
+    }
+}</code></pre>
+        <h3>Response</h3>
+        <p>On success (200):</p>
+        <pre><code>{
+    "filepaths": ["dist/json/model.json", "dist/yaml/model.yaml"],
+    "logs": ["Compilation finished successfully."],
+    "taskId": "example-task-id",
+    "lifeend": 1634025600
+}</code></pre>
+    </div>
+
+    <div class="endpoint">
+        <h2>2. Download a File</h2>
+        <p><strong>GET</strong> <code>/download/{taskId}</code></p>
+        <p>Downloads a generated file using the task ID.</p>
+        <h3>Path Parameters</h3>
+        <ul>
+            <li><strong>taskId</strong> (required, string): Unique identifier for the compilation task.</li>
+        </ul>
+        <h3>Response</h3>
+        <p>On success (200): Returns the file content as binary data.</p>
+    </div>
+
+    <div class="endpoint">
+        <h2>3. Get API Info</h2>
+        <p><strong>GET</strong> <code>/info</code></p>
+        <p>Checks the API status and retrieves version information.</p>
+        <h3>Response</h3>
+        <pre><code>{
+    "version": "1.0.0",
+    "node": "v14.17.0",
+    "description": "Heta Compiler API"
+}</code></pre>
+    </div>
+
+    <div class="endpoint">
+        <h2>4. Retrieve OpenAPI Schema</h2>
+        <p><strong>GET</strong> <code>/schema</code></p>
+        <p>Returns the full OpenAPI specification for the Heta Compiler API.</p>
+    </div>
+
+    <p><em>Contact support for assistance or detailed examples.</em></p>
+</body>
+</html>
