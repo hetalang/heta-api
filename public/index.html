@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy</title>
+    <title>Heta Compiler API</title>
 </head>
 <body>
     <h1>Heta compiler API</h1>
@@ -26,27 +26,56 @@
     </p>
 
     
-    <h2>API description</h2>
-
-    <p>The Heta Compiler API allows users to compile Heta platforms, customize the compilation process, and generate export files in various formats.</p>
+    <h1>Heta Compiler API - Developer Documentation</h1>
+    <p>The Heta Compiler API provides an interface for compiling Heta platforms, customizing compilation workflows, and exporting results. This documentation details the API structure, parameters, and examples for developers.</p>
     <p><strong>Base URL:</strong> <a href="https://heta-api.insysbio.com" target="_blank">https://heta-api.insysbio.com</a></p>
-    <p><strong>Version:</strong> 0.1.1</p>
+    <p><strong>API Version:</strong> 0.1.1</p>
 
     <div class="endpoint">
         <h2>1. Compile a Platform</h2>
-        <p><strong>POST</strong> <code>/build</code></p>
-        <p>Compiles a Heta platform and generates export files based on the provided configuration.</p>
-        <h3>Request Body Parameters</h3>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Endpoint:</strong> <code>/build</code></p>
+        <p>This endpoint compiles a Heta platform and generates files based on the provided configuration. All operations are synchronous, and results are returned immediately.</p>
+
+        <h3>Request Body</h3>
         <ul>
-            <li><strong>lifetime</strong> (optional, number): Time in seconds to keep generated files on the server. Default: <code>3600</code>.</li>
-            <li><strong>files</strong> (required, array): List of platform files to be compiled. Each file must include:</li>
-            <pre><code>{
-    "filepath": "index.heta",
-    "format": "utf8",
-    "filebody": "include model.heta;"
-}</code></pre>
-            <li><strong>declaration</strong> (optional, object): Describes the compilation process with options for file format, debugging, logs, and export formats.</li>
+            <li><strong>lifetime</strong> (optional, number): The time in seconds for keeping the files on the server. Default: <code>3600</code> (1 hour).</li>
+            <li><strong>files</strong> (required, array): An array of objects representing the platform files to be compiled. Each object must include:
+                <ul>
+                    <li><strong>filepath</strong> (string): Path or name of the file (e.g., <code>"index.heta"</code>).</li>
+                    <li><strong>format</strong> (string): File format, either <code>"utf8"</code> or <code>"binary"</code>.</li>
+                    <li><strong>filebody</strong> (string): File content in plain text or binary format.</li>
+                </ul>
+            </li>
+            <li><strong>declaration</strong> (optional, object): Describes how the compilation should proceed.
+                <ul>
+                    <li><strong>importModule</strong> (object): Specifies the entry point for compilation.
+                        <ul>
+                            <li><strong>source</strong> (string): Name of the main file (e.g., <code>"index.heta"</code>).</li>
+                            <li><strong>type</strong> (string): Format of the file (e.g., <code>"heta"</code>, <code>"json"</code>).</li>
+                        </ul>
+                    </li>
+                    <li><strong>options</strong> (object): Additional compilation settings.
+                        <ul>
+                            <li><strong>unitsCheck</strong> (boolean): If <code>true</code>, checks unit consistency. Default: <code>false</code>.</li>
+                            <li><strong>debug</strong> (boolean): Enables debugging mode. Default: <code>false</code>.</li>
+                            <li><strong>distDir</strong> (string): Directory for saving exported files. Default: <code>"dist"</code>.</li>
+                            <li><strong>metaDir</strong> (string): Directory for saving metadata. Default: <code>"meta"</code>.</li>
+                            <li><strong>logMode</strong> (string): Controls log generation. Options: <code>"never"</code>, <code>"error"</code>, <code>"always"</code>. Default: <code>"error"</code>.</li>
+                            <li><strong>logPath</strong> (string): Path for log file. Default: <code>"build.log"</code>.</li>
+                            <li><strong>logFormat</strong> (string): Format of the log file. Options: <code>"string"</code>, <code>"json"</code>. Default: <code>"string"</code>.</li>
+                        </ul>
+                    </li>
+                    <li><strong>export</strong> (array): List of export formats. Each format can include:
+                        <ul>
+                            <li><strong>format</strong> (string): Type of export format (e.g., <code>"JSON"</code>, <code>"SBML"</code>).</li>
+                            <li><strong>version</strong> (string): File version (optional).</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
         </ul>
+
         <h3>Example Request</h3>
         <pre><code>{
     "lifetime": 1800,
@@ -64,41 +93,63 @@
         },
         "options": {
             "unitsCheck": true,
-            "debug": false,
-            "logMode": "error"
+            "debug": false
         },
         "export": [
             { "format": "JSON" },
-            { "format": "YAML" }
+            { "format": "SBML", "version": "L3V2" }
         ]
     }
 }</code></pre>
+
         <h3>Response</h3>
-        <p>On success (200):</p>
-        <pre><code>{
-    "filepaths": ["dist/json/model.json", "dist/yaml/model.yaml"],
+        <div class="response">
+            <p><strong>Success (200):</strong></p>
+            <pre><code>{
+    "filepaths": ["dist/json/model.json", "dist/sbml/model.xml"],
     "logs": ["Compilation finished successfully."],
     "taskId": "example-task-id",
     "lifeend": 1634025600
 }</code></pre>
+        </div>
+        <div class="response">
+            <p><strong>Errors:</strong></p>
+            <ul>
+                <li><strong>400</strong>: Invalid request parameters.</li>
+                <li><strong>422</strong>: Compilation errors due to misconfigured platform files.</li>
+                <li><strong>500</strong>: Internal server error.</li>
+            </ul>
+        </div>
     </div>
 
     <div class="endpoint">
         <h2>2. Download a File</h2>
-        <p><strong>GET</strong> <code>/download/{taskId}</code></p>
-        <p>Downloads a generated file using the task ID.</p>
+        <p><strong>Method:</strong> GET</p>
+        <p><strong>Endpoint:</strong> <code>/download/{taskId}</code></p>
+        <p>Retrieve a file generated during a compilation task using the task ID.</p>
+
         <h3>Path Parameters</h3>
         <ul>
             <li><strong>taskId</strong> (required, string): Unique identifier for the compilation task.</li>
         </ul>
+
         <h3>Response</h3>
-        <p>On success (200): Returns the file content as binary data.</p>
+        <div class="response">
+            <p><strong>Success (200):</strong> File content is returned as binary data.</p>
+            <p><strong>Errors:</strong></p>
+            <ul>
+                <li><strong>404</strong>: File not found.</li>
+                <li><strong>500</strong>: Internal server error.</li>
+            </ul>
+        </div>
     </div>
 
     <div class="endpoint">
         <h2>3. Get API Info</h2>
-        <p><strong>GET</strong> <code>/info</code></p>
-        <p>Checks the API status and retrieves version information.</p>
+        <p><strong>Method:</strong> GET</p>
+        <p><strong>Endpoint:</strong> <code>/info</code></p>
+        <p>Retrieve version and connectivity details for the Heta Compiler API.</p>
+
         <h3>Response</h3>
         <pre><code>{
     "version": "1.0.0",
@@ -109,10 +160,16 @@
 
     <div class="endpoint">
         <h2>4. Retrieve OpenAPI Schema</h2>
-        <p><strong>GET</strong> <code>/schema</code></p>
-        <p>Returns the full OpenAPI specification for the Heta Compiler API.</p>
+        <p><strong>Method:</strong> GET</p>
+        <p><strong>Endpoint:</strong> <code>/schema</code></p>
+        <p>Retrieve the complete OpenAPI schema for the Heta Compiler API.</p>
+
+        <h3>Response</h3>
+        <pre><code>{
+    "openapi": "3.1.0"
+}</code></pre>
     </div>
 
-    <p><em>Contact support for assistance or detailed examples.</em></p>
+    <p><em>For more details or support, contact the API team.</em></p>
 </body>
 </html>
