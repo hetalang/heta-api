@@ -23,6 +23,18 @@ const schemaRoutes = require('./schema');
 app.use(express.json());
 // Load OpenAPI schema
 
+// collect minimal information
+app.use((req, res, next) => {
+  // for additional information about the request
+  // see also 'ua-parser-js'
+  // const userAgent = req.headers['user-agent']; 
+
+  // collect information about the request
+  console.log(`Request: ${req.method} ${req.originalUrl} from ${req.ip} at ${new Date().toISOString()}`);
+
+  next();
+});
+
 app.use(
     OpenApiValidator.middleware({
       apiSpec: __dirname + '/../heta-api-schema.json',
@@ -61,6 +73,7 @@ app.use((err, req, res, next) => {
   }
 
   // other errors
+  console.error(`Error: ${err.message}`);
   res.status(err.status || 500).json({
     message: err.message,
     errors: err.errors,
