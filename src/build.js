@@ -41,12 +41,8 @@ router.post('/', (req, res) => {
 
     // calculate time to delete
     const currentTime = Math.floor(Date.now() / 1000);
-    const lifetime = apiOptions.lifetime || 3600;
+    const lifetime = apiOptions.lifetime;
     const deleteTime = currentTime + lifetime;
-    // delete task directory after lifeTime
-    setTimeout(() => {
-        fs.rmSync(basePath, { recursive: true });
-    }, lifetime * 1000);
 
     // storage for logs
     // items as strings
@@ -89,6 +85,11 @@ router.post('/', (req, res) => {
         logs: apiLogs,
         downloadLink: `/download/${uuid}`,
     });
+
+    // delete task directory after lifeTime
+    setTimeout(() => {
+        fs.rmSync(basePath, { recursive: true });
+    }, lifetime * 1000);
 });
 
 // like code 2 in /bin/heta-build.js
