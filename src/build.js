@@ -18,12 +18,12 @@ router.post('/', (req, res) => {
     const basePath = path.resolve(FILES, uuid);
     fs.mkdirSync(basePath);
 
-    // create filepaths
-    let filepaths = [];
+    // create storage for files
+    let outputFiles = [];
 
     // copy files to the task directory
     // {filpath: 'path/to/file', format: 'binary', filebody: 'content'}
-    apiOptions.files?.forEach((file) => {
+    apiOptions.inputFiles?.forEach((file) => {
         const filepath = path.resolve(basePath, file.filepath);
         
         // check the user in allowed directory
@@ -36,7 +36,8 @@ router.post('/', (req, res) => {
 
         // write file and create directories if not exist
         fs.outputFileSync(filepath, file.filebody, file.format);
-        filepaths.push(file.filepath);
+        // uncomment it to send inputs back
+        //outputFiles.push({filepath: file.filepath}); 
     });
 
     // calculate time to delete
@@ -50,14 +51,14 @@ router.post('/', (req, res) => {
 
     // run build job
     try {
-        var builder = main(apiOptions.declaration || {}, basePath, apiLogs, filepaths);
+        var builder = main(apiOptions.declaration || {}, basePath, apiLogs, outputFiles);
     } catch (error) {
         // handle errors
         if (error.name === 'BuildLevelError' || error.name === 'HetaLevelError') {
             apiLogs.push(error.message);
             apiLogs.push('STOP!');
             res.status(422).send({ // same structure as 200
-                filepaths: filepaths,
+                outputFiles: outputFiles,
                 taskId: uuid,
                 lifeend: deleteTime, // in seconds
                 logs: apiLogs,
@@ -79,7 +80,7 @@ router.post('/', (req, res) => {
     }
 
     res.send({
-        filepaths: filepaths,
+        outputFiles: outputFiles,
         taskId: uuid,
         lifeend: deleteTime, // in seconds
         logs: apiLogs,
@@ -101,7 +102,7 @@ class BuildLevelError extends Error {
 }
 
 // take declaration and run build
-function main(declaration, targetDir, logs, filepaths) {
+function main(declaration, targetDir, logs, outputFiles) {
 
     // declaration file is not used in API but it generated from apiOptions
     logs.push(`Running compilation with declaration file "platform.yml"...`);    
@@ -109,7 +110,7 @@ function main(declaration, targetDir, logs, filepaths) {
     // save declaration file
     let declarationPath = path.resolve(targetDir, 'platform.yml');
     fs.outputFileSync(declarationPath, JSON.stringify(declaration, null, 2)); // YAML.dump(declaration)
-    filepaths.push('platform.yml');
+    outputFiles.push({filepath: 'platform.yml'});
     
     // helper function to store  all saved files paths
     myOutputFileSync = (...args) => {
@@ -126,7 +127,7 @@ function main(declaration, targetDir, logs, filepaths) {
         
         let result = fs.outputFileSync(...args);
         
-        filepaths.push(relativePath);
+        outputFiles.push({filepath: relativePath});
 
         return result;
     };

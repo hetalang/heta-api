@@ -40,7 +40,7 @@
         <h3>Request Body</h3>
         <ul>
             <li><strong>lifetime</strong> (optional, number): The time in seconds for keeping the files on the server. Default: <code>3600</code> (1 hour).</li>
-            <li><strong>files</strong> (required, array): An array of objects representing the platform files to be compiled. Each object must include:
+            <li><strong>inputFiles</strong> (required, array): An array of objects representing the platform files to be compiled. Each object must include:
                 <ul>
                     <li><strong>filepath</strong> (string): Path or name of the file (e.g., <code>"index.heta"</code>).</li>
                     <li><strong>format</strong> (string): File format, either <code>"utf8"</code> or <code>"binary"</code>.</li>
@@ -106,7 +106,7 @@
         <div class="response">
             <p><strong>Success (200):</strong></p>
             <pre><code>{
-    "filepaths": ["dist/json/model.json", "dist/sbml/model.xml"],
+    "outputFiles": [{"filepath": "dist/json/model.json"}, {"filepath": "dist/sbml/model.xml"}],
     "logs": ["Compilation finished successfully."],
     "taskId": "example-task-id",
     "lifeend": 1634025600

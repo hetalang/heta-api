@@ -23,14 +23,14 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["files"],
+                  "required": ["inputFiles"],
                   "properties": {
                     "lifetime": {
                       "type": "number",
                       "default": 3600,
                       "description": "Time in seconds for keeping files on the server. It is related to the task ID. Default is 1 hour."
                     },
-                    "files": {
+                    "inputFiles": {
                       "type": "array",
                       "description": "Array of files of platform.",
                       "minItems": 1,
@@ -118,7 +118,7 @@
                   },
                   "example": {
                     "lifetime": 1800,
-                    "files": [
+                    "inputFiles": [
                       {
                         "filepath": "index.heta",
                         "format": "utf8",
@@ -161,10 +161,10 @@
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "filepaths": {
+                      "outputFiles": {
                         "type": "array",
-                        "description": "Array of filepaths for the generated files.",
-                        "items": { "type": "string" }
+                        "description": "Array of generated files.",
+                        "items": { "$ref": "#/components/schemas/File" }
                       },
                       "logs": {
                         "type": "array",
@@ -183,16 +183,19 @@
                       }
                     },
                     "example": {
-                      "filepaths": [
-                        "index.heta",
-                        "dist/json/model.json",
-                        "dist/yaml/model.yaml",
-                        "dist/dbsolve/model.slv",
-                        "dist/sbml/model.xml",
-                        "dist/simbio/model.m",
-                        "dist/mrgsolve/model.cpp",
-                        "dist/mrgsolve/run.R",
-                        "dist/table/model.xlsx"
+                      "outputFiles": [
+                        {"filepath": "index.heta"},
+                        {"filepath": "dist/json/model.json"},
+                        {"filepath": "dist/yaml/model.yaml"},
+                        {"filepath": "dist/dbsolve/model.slv"},
+                        {"filepath": "dist/sbml/model.xml"},
+                        {"filepath": "dist/simbio/model.m"},
+                        {"filepath": "dist/mrgsolve/model.cpp"},
+                        {"filepath": "dist/mrgsolve/run.R"},
+                        {"filepath": "dist/table/model.xlsx"},
+                        {"filepath": "dist/matlab/model.m"},
+                        {"filepath": "dist/dot/model.dot"},
+                        {"filepath": "dist/summary/model.txt"}
                       ],
                       "logs": ["Compilation finished successfully."],
                       "taskId": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
@@ -209,10 +212,10 @@
                   "schema": {
                     "type": "object",
                     "properties": {
-                      "filepaths": {
+                      "outputFiles": {
                         "type": "array",
-                        "description": "Array of filepaths for the generated files.",
-                        "items": { "type": "string" }
+                        "description": "Array of the generated files.",
+                        "items": { "$ref": "#/components/schemas/File" }
                       },
                       "logs": {
                         "type": "array",
@@ -475,6 +478,7 @@
         },
         "File": {
           "type": "object",
+          "required": ["filepath"],
           "properties": {
             "filepath": {
               "type": "string",
@@ -484,7 +488,7 @@
               "type": "string",
               "enum": ["binary", "utf8"],
               "default": "utf8",
-              "description": "The type of file for compilation."
+              "description": "The type of file."
             },
             "filebody": {
               "type": "string",
