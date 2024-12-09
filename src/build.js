@@ -63,6 +63,7 @@ router.post('/', (req, res) => {
                 lifeend: deleteTime, // in seconds
                 logs: apiLogs,
                 downloadLink: `/download/${uuid}`,
+                filesLink: `/files/${uuid}`,
             });
             return; // BREAK
         } else {
@@ -85,6 +86,7 @@ router.post('/', (req, res) => {
         lifeend: deleteTime, // in seconds
         logs: apiLogs,
         downloadLink: `/download/${uuid}`,
+        filesLink: `/files/${uuid}`,
     });
 
     // delete task directory after lifeTime
