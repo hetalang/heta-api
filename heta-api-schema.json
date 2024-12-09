@@ -45,7 +45,7 @@
                     },
                     "declaration": {
                       "type": "object",
-                      "description": "Structure describing the platform compilation. This is an analogue of the platform declaration file. If omitted, the compiler will use the default options.",
+                      "description": "Structure describing the platform compilation. This object share same structure as platform.yml in heta-compiler. If omitted, the compiler will use the default options.",
                       "properties": {
                         "importModule": {
                           "type": "object",
@@ -180,6 +180,16 @@
                         "type": "number",
                         "description": "Time when files will be deleted in Unix timestamp seconds format.",
                         "example": 1634025600
+                      },
+                      "downloadLink": {
+                        "type": "string",
+                        "description": "Link for downloading a ZIP file with all generated files.",
+                        "example": "/download/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
+                      },
+                      "filesLink": {
+                        "type": "string",
+                        "description": "Link for server where all files are temporally stored. To get the full path add base server URL, e.g. https://heta-api.insysbio.com/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
+                        "example": "/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                       }
                     },
                     "example": {
@@ -199,7 +209,9 @@
                       ],
                       "logs": ["Compilation finished successfully."],
                       "taskId": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
-                      "lifeend": 1634025600
+                      "lifeend": 1634025600,
+                      "downloadLink": "/download/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
+                      "filesLink": "/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                     }
                   }
                 }
@@ -231,6 +243,16 @@
                         "type": "number",
                         "description": "Time when files will be deleted in Unix timestamp seconds format.",
                         "example": 1634025600
+                      },
+                      "downloadLink": {
+                        "type": "string",
+                        "description": "Link for downloading a ZIP file with all generated files.",
+                        "example": "/download/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
+                      },
+                      "filesLink": {
+                        "type": "string",
+                        "description": "Link for server where all files are temporally stored. To get the full path add base server URL, e.g. https://heta-api.insysbio.com/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
+                        "example": "/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                       }
                     }
                   }
@@ -284,13 +306,13 @@
         "get": {
           "operationId": "downloadFile",
           "summary": "Download file",
-          "description": "Download a file associated with a specific task ID and file path.",
+          "description": "Download a ZIP file associated with a whole content of the build platform.",
           "parameters": [
             {
               "name": "taskId",
               "in": "path",
               "required": true,
-              "description": "Unique task ID.",
+              "description": "Unique task ID from /build POST response.",
               "schema": {
                 "type": "string",
                 "example": "9cc63441-a35c-4e41-b62c-505532fd79a6"
@@ -301,7 +323,7 @@
             "200": {
               "description": "File is ready for download.",
               "content": {
-                "application/octet-stream": {
+                "application/zip": {
                   "schema": {
                     "type": "string",
                     "format": "binary"
