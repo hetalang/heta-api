@@ -37,7 +37,7 @@ router.post('/', (req, res) => {
         // write file and create directories if not exist
         fs.outputFileSync(filepath, file.filebody, file.format);
         // uncomment it to send inputs back
-        //outputFiles.push({filepath: file.filepath}); 
+        //outputFiles.push(file); 
     });
 
     // calculate time to delete
@@ -109,8 +109,9 @@ function main(declaration, targetDir, logs, outputFiles) {
 
     // save declaration file
     let declarationPath = path.resolve(targetDir, 'platform.yml');
-    fs.outputFileSync(declarationPath, JSON.stringify(declaration, null, 2)); // YAML.dump(declaration)
-    outputFiles.push({filepath: 'platform.yml'});
+    let declarationJSON = JSON.stringify(declaration, null, 2);
+    fs.outputFileSync(declarationPath, declarationJSON); // YAML.dump(declaration)
+    outputFiles.push({filepath: 'platform.yml', type: 'utf8', filebody: declarationJSON});
     
     // helper function to store  all saved files paths
     myOutputFileSync = (...args) => {
@@ -126,8 +127,9 @@ function main(declaration, targetDir, logs, outputFiles) {
         }
         
         let result = fs.outputFileSync(...args);
+        let binaryString = args[1].toString('binary');
         
-        outputFiles.push({filepath: relativePath});
+        outputFiles.push({filepath: relativePath, type: 'binary', filebody: binaryString});
 
         return result;
     };
