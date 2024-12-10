@@ -3,11 +3,10 @@ const OpenApiValidator = require('express-openapi-validator');
 const app = express();
 
 const fs = require('fs');
-
-require('dotenv').config();
+const path = require('path');
 
 // directory to store files
-const FILES = process.env.FILES;
+const { FILES, PORT } = process.env;
 
 // empty content if exists or create
 if (fs.existsSync(FILES)) {
@@ -80,4 +79,5 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(3000, () => console.log('API running on http://localhost:3000'));
+let filesAbsolutePath = path.resolve(FILES);
+app.listen(PORT || 3000, () => console.log(`API running on http://localhost:${PORT || 3000} with storage in "${filesAbsolutePath}"`));
