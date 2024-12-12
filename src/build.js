@@ -7,6 +7,8 @@ const path = require('path');
 
 // directory to store files
 const FILES = process.env.FILES;
+// This should be taken from request but i don't know how to do it
+const url = 'https://heta-api.insysbio.com'; 
 
 const router = express.Router();
 
@@ -57,6 +59,8 @@ router.post('/', (req, res) => {
         if (error.name === 'BuildLevelError' || error.name === 'HetaLevelError') {
             apiLogs.push(error.message);
             apiLogs.push('STOP!');
+            
+            !!lifetime && apiLogs.push(`Your files will be available on ${url}/files/${uuid} for ${lifetime} seconds.`);
             res.status(422).send({ // same structure as 200
                 outputFiles: outputFiles,
                 taskId: uuid,
@@ -80,6 +84,7 @@ router.post('/', (req, res) => {
         apiLogs.push('Compilation OK!');
     }
 
+    !!lifetime && apiLogs.push(`Your files will be available on ${url}/files/${uuid} for ${lifetime} seconds.`);
     res.send({
         outputFiles: outputFiles,
         taskId: uuid,

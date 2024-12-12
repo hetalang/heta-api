@@ -438,14 +438,9 @@
                 "enum": ["JSON", "YAML", "DBSolve", "SLV", "SBML", "Simbio", "Mrgsolve", "Table", "XLSX", "Julia", "Matlab", "Dot", "Summary"],
                 "description": "The type of file for compilation. Case sensitive."
               },
-              "filepath": {
-                "type": "string",
-                "description": "Path for saving exported files. Do use it until you need to save files in different directories.",
-                "example": "model"
-              },
               "spaceFilter": {
                 "type": "string",
-                "description": "Filter for space in RegExp format.",
+                "description": "Filter for space in RegExp format. Skip it if you want to export all spaces.",
                 "example": "^one|two$"
               },
               "omit": {
