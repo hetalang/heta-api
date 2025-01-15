@@ -17,7 +17,7 @@
     "archiver": "^7.0.1",
     "express": "^4.21.1",
     "express-openapi-validator": "^5.3.9",
-    "heta-compiler": "^0.9.2",
+    "heta-compiler": "^0.9.3",
     "uuid": "^11.0.3"
   },
   "engines": {

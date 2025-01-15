@@ -90,23 +90,6 @@
                               "type": "string",
                               "description": "Path for saving metadata. Used for debugging when option 'debug: true'.",
                               "default": "meta"
-                            },
-                            "logMode": {
-                              "type": "string",
-                              "enum": ["never", "error", "always"],
-                              "description": "Level at which log file will be generated and saved. 'never' - no logs, 'error' - only errors, 'always' - all logs.",
-                              "default": "error"
-                            },
-                            "logPath": {
-                              "type": "string",
-                              "description": "Path for saving log file.",
-                              "default": "build.log"
-                            },
-                            "logFormat": {
-                              "type": "string",
-                              "description": "Format of log file. 'json' - JSON format, 'text' - plain text format.",
-                              "enum": ["json", "string"],
-                              "default": "string"
                             }
                           }
                         },
@@ -134,7 +117,6 @@
                       "debug": false,
                       "distDir": "dist",
                       "metaDir": "meta",
-                      "logMode": "error",
                       "export": [
                         { "format": "JSON" },
                         { "format": "YAML" },

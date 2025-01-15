@@ -110,7 +110,6 @@ class BuildLevelError extends Error {
 
 // take declaration and run build
 function main(declaration, targetDir, logs, outputFiles) {
-
     // declaration file is not used in API but it generated from apiOptions
     logs.push(`Running compilation with declaration file "platform.yml"...`);    
 
@@ -121,7 +120,7 @@ function main(declaration, targetDir, logs, outputFiles) {
     outputFiles.push({filepath: 'platform.yml', type: 'utf8', filebody: declarationJSON});
     
     // helper function to store  all saved files paths
-    myOutputFileSync = (...args) => {
+    const myOutputFileSync = (...args) => {
         let absolutePath = path.resolve(args[0]);
         let relativePath = path.relative(targetDir, args[0])
 
@@ -141,7 +140,7 @@ function main(declaration, targetDir, logs, outputFiles) {
         return result;
     };
 
-    myInputFileSync = (...args) => {
+    const myInputFileSync = (...args) => {
         let absolutePath = path.resolve(args[0]);
         let relativePath = path.relative(targetDir, args[0])
 
@@ -157,14 +156,14 @@ function main(declaration, targetDir, logs, outputFiles) {
     };
 
     // run builder (set declaration defaults internally)
-
+    process.chdir(targetDir);
     let builder = new Builder(
         declaration,
-        targetDir,
         myInputFileSync,
         myOutputFileSync,
         [new StringTransport('info', logs)]
     ).run();
+    process.chdir(path.join(__dirname, '..')); // return to the original directory, project root
 
     return builder;
 }
