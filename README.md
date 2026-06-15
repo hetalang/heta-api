@@ -14,10 +14,11 @@ Server path: <https://heta-api.insysbio.com>
 
 Send files and options for building platform.
 Receive compilation logs and a taskId for download the result.
+The `lifetime` option defaults to `3600` seconds; if set to `0`, files are removed immediately after response.
 
 ### /download/{taskId} (GET)
 
-Send taskId and filenames to download.
+Send taskId to download the result of compilation as a zip archive.
 
 ### /schema (GET)
 
@@ -32,4 +33,7 @@ Receive a message with heta-compiler version.
 ```bash
 npm install
 npm start
+npm run dev
 ```
+
+`npm run dev` is recommended for local cross-platform development (Windows/Linux/macOS).

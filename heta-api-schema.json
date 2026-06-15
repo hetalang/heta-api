@@ -27,8 +27,9 @@
                   "properties": {
                     "lifetime": {
                       "type": "number",
+                      "minimum": 0,
                       "default": 3600,
-                      "description": "Time in seconds for keeping files on the server. It is related to the task ID. Default is 1 hour."
+                      "description": "Time in seconds for keeping files on the server. It is related to the task ID. Default is 1 hour. If set to 0, files are removed immediately after the response is sent."
                     },
                     "inputFiles": {
                       "type": "array",

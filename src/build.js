@@ -43,8 +43,18 @@ router.post('/', (req, res) => {
 
     // calculate time to delete
     const currentTime = Math.floor(Date.now() / 1000);
-    const lifetime = apiOptions.lifetime;
+    const lifetime = apiOptions.lifetime ?? 3600;
     const deleteTime = currentTime + lifetime;
+    // delete task directory after lifeTime
+    const scheduleTaskCleanup = () => {
+        setTimeout(() => {
+            try {
+                fs.rmSync(basePath, { recursive: true, force: true });
+            } catch (cleanupError) {
+                console.warn(`Cleanup error for task ${uuid}: ${cleanupError.message}`);
+            }
+        }, lifetime * 1000);
+    };
 
     // storage for logs
     // items as strings
@@ -68,6 +78,8 @@ router.post('/', (req, res) => {
                 downloadLink: `/download/${uuid}`,
                 filesLink: `/files/${uuid}`,
             });
+            scheduleTaskCleanup();
+            
             return; // BREAK
         } else {
             // delete task directory
@@ -92,11 +104,7 @@ router.post('/', (req, res) => {
         downloadLink: `/download/${uuid}`,
         filesLink: `/files/${uuid}`,
     });
-
-    // delete task directory after lifeTime
-    setTimeout(() => {
-        fs.rmSync(basePath, { recursive: true });
-    }, lifetime * 1000);
+    scheduleTaskCleanup();
 });
 
 // like code 2 in /bin/heta-build.js
