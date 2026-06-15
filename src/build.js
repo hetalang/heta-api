@@ -117,7 +117,7 @@ class BuildLevelError extends Error {
 
 // take declaration and run build
 function main(declaration, targetDir, logs, outputFiles) {
-    const { Builder, StringTransport } = require('heta-compiler');
+    const { Builder, StringTransport } = require('heta-compiler/web');
 
     // declaration file is not used in API but it generated from apiOptions
     logs.push(`Running compilation with declaration file "platform.yml"...`);    

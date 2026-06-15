@@ -1,5 +1,5 @@
 const express = require('express');
-const { version } = require('heta-compiler/package.json');
+const { version } = require('heta-compiler/package');
 
 const router = express.Router();
 

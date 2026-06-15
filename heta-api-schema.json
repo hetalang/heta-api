@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
       "title": "Heta Compiler API",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "description": "API for interacting with the Heta Compiler via HTTP."
     },
     "servers": [
@@ -418,7 +418,7 @@
             "properties": {
               "format": {
                 "type": "string",
-                "enum": ["JSON", "YAML", "DBSolve", "SLV", "SBML", "Simbio", "Mrgsolve", "Table", "XLSX", "Julia", "Matlab", "Dot", "Summary"],
+                "enum": ["JSON", "YAML", "DBSolve", "SBML", "Simbio", "Mrgsolve", "Table", "XLSX", "Julia", "Matlab", "Dot", "Summary", "Canonical", "HetaCode", "Dynms"],
                 "description": "The type of file for compilation. Case sensitive."
               },
               "spaceFilter": {
