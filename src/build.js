@@ -1,6 +1,5 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { Builder, StringTransport } = require('heta-compiler');
 const fs = require('fs-extra');
 const path = require('path');
 //const YAML = require('js-yaml');
@@ -110,6 +109,8 @@ class BuildLevelError extends Error {
 
 // take declaration and run build
 function main(declaration, targetDir, logs, outputFiles) {
+    const { Builder, StringTransport } = require('heta-compiler');
+
     // declaration file is not used in API but it generated from apiOptions
     logs.push(`Running compilation with declaration file "platform.yml"...`);    
 

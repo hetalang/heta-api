@@ -6,7 +6,10 @@ const fs = require('fs');
 const path = require('path');
 
 // directory to store files
-const { FILES, PORT } = process.env;
+const FILES = process.env.FILES || path.join(__dirname, '..', 'files'); // set default files directory
+const PORT = process.env.PORT || 3000; // set default port
+process.env.FILES = FILES;
+process.env.PORT = PORT;
 
 // empty content if exists or create
 if (fs.existsSync(FILES)) {
@@ -80,4 +83,4 @@ app.use((err, req, res, next) => {
 });
 
 let filesAbsolutePath = path.resolve(FILES);
-app.listen(PORT || 3000, () => console.log(`API running on http://localhost:${PORT || 3000} with storage in "${filesAbsolutePath}"`));
+app.listen(PORT, () => console.log(`API running on http://localhost:${PORT} with storage in "${filesAbsolutePath}"`));

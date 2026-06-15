@@ -5,13 +5,14 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "FILES=files PORT=3000 node src"
+    "start": "FILES=files PORT=3000 node src",
+    "dev": "node src"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/hetalang/heta-api.git"
   },
-  "author": "Evgeny Metelkin <evgeny.metelkin@gmail.com> (https://github.com/metelkin)",
+  "author": "Evgeny Metelkin <evgeny.metelkin@gmail.com> (https://metelkin.me/)",
   "license": "Apache-2.0",
   "dependencies": {
     "archiver": "^7.0.1",
