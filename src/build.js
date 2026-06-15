@@ -126,7 +126,7 @@ function main(declaration, targetDir, logs, outputFiles) {
     let declarationPath = path.resolve(targetDir, 'platform.yml');
     let declarationJSON = JSON.stringify(declaration, null, 2);
     fs.outputFileSync(declarationPath, declarationJSON); // YAML.dump(declaration)
-    outputFiles.push({filepath: 'platform.yml', type: 'utf8', filebody: declarationJSON});
+    outputFiles.push({filepath: 'platform.yml', format: 'utf8', filebody: declarationJSON});
     
     // helper function to store  all saved files paths
     const myOutputFileSync = (...args) => {
@@ -144,7 +144,7 @@ function main(declaration, targetDir, logs, outputFiles) {
         let result = fs.outputFileSync(...args);
         let binaryString = args[1].toString('binary');
         
-        outputFiles.push({filepath: relativePath, type: 'binary', filebody: binaryString});
+        outputFiles.push({filepath: relativePath, format: 'binary', filebody: binaryString});
 
         return result;
     };

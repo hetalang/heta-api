@@ -17,7 +17,7 @@ router.get('/:taskId', (req, res) => {
 
     if (!fs.existsSync(basePath)) {
         res.status(404).json({
-            message: 'Task not found.'
+            error: 'Task not found.'
         });
         return; // BREAK
     }
