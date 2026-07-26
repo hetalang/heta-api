@@ -7,7 +7,7 @@ const path = require('path');
 
 // directory to store files
 const FILES = process.env.FILES || path.join(__dirname, '..', 'files'); // set default files directory
-const PORT = process.env.PORT || 3000; // set default port
+const PORT = Number(process.env.PORT) || 3000; // set default port
 process.env.FILES = FILES;
 process.env.PORT = PORT;
 

@@ -4,7 +4,7 @@
   "description": "API for compilation Heta based platforms.",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
     "start": "FILES=files PORT=3000 node src",
     "dev": "node src"
   },
