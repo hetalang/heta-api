@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const archiver = require('archiver'); // To zip multiple files
+const { ZipArchive } = require('archiver');
 
 // directory to store files
 const FILES = process.env.FILES;
@@ -31,7 +31,7 @@ router.get('/:taskId', (req, res) => {
     });
 
     // preparing archive
-    const archive = archiver('zip');
+    const archive = new ZipArchive();
     archive.on('error', (err) => {
         res.status(500).send({
             message: err.message 
