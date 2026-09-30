@@ -83,4 +83,7 @@ app.use((err, req, res, next) => {
 });
 
 let filesAbsolutePath = path.resolve(FILES);
-app.listen(PORT, () => console.log(`API running on http://localhost:${PORT} with storage in "${filesAbsolutePath}"`));
+const server = app.listen(PORT, () => {
+  const { port } = server.address();
+  console.log(`API running on http://localhost:${port} with storage in "${filesAbsolutePath}"`);
+});

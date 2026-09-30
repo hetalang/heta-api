@@ -2,23 +2,11 @@ const assert = require('node:assert/strict');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const http = require('node:http');
-const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 
 const projectRoot = path.resolve(__dirname, '..');
-
-function getAvailablePort() {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', () => {
-      const { port } = server.address();
-      server.close((error) => error ? reject(error) : resolve(port));
-    });
-  });
-}
 
 function requestInfo(port) {
   return new Promise((resolve, reject) => {
@@ -33,34 +21,41 @@ function requestInfo(port) {
   });
 }
 
-async function waitForServer(port, server) {
-  const deadline = Date.now() + 10000;
-  let lastError;
+function waitForServerPort(server) {
+  return new Promise((resolve, reject) => {
+    let output = '';
+    const timeout = setTimeout(() => {
+      reject(new Error(`Server did not become ready. Output:\n${output}`));
+    }, 10000);
 
-  while (Date.now() < deadline) {
-    if (server.exitCode !== null) {
-      throw new Error(`Server exited before it became ready (code ${server.exitCode}).`);
-    }
+    const fail = (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    };
 
-    try {
-      return await requestInfo(port);
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  }
-
-  throw new Error(`Server did not become ready: ${lastError?.message}`);
+    server.stdout.setEncoding('utf8');
+    server.stderr.setEncoding('utf8');
+    server.stdout.on('data', (chunk) => {
+      output += chunk;
+      const match = output.match(/API running on http:\/\/localhost:(\d+)/);
+      if (match) {
+        clearTimeout(timeout);
+        resolve(Number(match[1]));
+      }
+    });
+    server.stderr.on('data', (chunk) => { output += chunk; });
+    server.once('error', fail);
+    server.once('exit', (code) => fail(new Error(`Server exited before it became ready (code ${code}). Output:\n${output}`)));
+  });
 }
 
 test('GET /info returns API metadata', { timeout: 15000 }, async (t) => {
-  const port = await getAvailablePort();
   const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'heta-api-test-'));
   const filesDirectory = path.join(tempDirectory, 'files');
   const server = spawn(process.execPath, ['src'], {
     cwd: projectRoot,
-    env: { ...process.env, PORT: String(port), FILES: filesDirectory },
-    stdio: 'ignore',
+    env: { ...process.env, PORT: '0', FILES: filesDirectory },
+    stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   });
 
@@ -71,7 +66,8 @@ test('GET /info returns API metadata', { timeout: 15000 }, async (t) => {
     fs.rmSync(tempDirectory, { recursive: true, force: true });
   });
 
-  const response = await waitForServer(port, server);
+  const port = await waitForServerPort(server);
+  const response = await requestInfo(port);
 
   assert.equal(response.statusCode, 200);
   assert.deepEqual(JSON.parse(response.body), {
