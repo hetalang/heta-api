@@ -21,41 +21,34 @@ function requestInfo(port) {
   });
 }
 
-function waitForServerPort(server) {
-  return new Promise((resolve, reject) => {
-    let output = '';
-    const timeout = setTimeout(() => {
-      reject(new Error(`Server did not become ready. Output:\n${output}`));
-    }, 10000);
+async function waitForServer(port, server) {
+  const deadline = Date.now() + 10000;
+  let lastError;
 
-    const fail = (error) => {
-      clearTimeout(timeout);
-      reject(error);
-    };
+  while (Date.now() < deadline) {
+    if (server.exitCode !== null) {
+      throw new Error(`Server exited before it became ready (code ${server.exitCode}).`);
+    }
 
-    server.stdout.setEncoding('utf8');
-    server.stderr.setEncoding('utf8');
-    server.stdout.on('data', (chunk) => {
-      output += chunk;
-      const match = output.match(/API running on http:\/\/localhost:(\d+)/);
-      if (match) {
-        clearTimeout(timeout);
-        resolve(Number(match[1]));
-      }
-    });
-    server.stderr.on('data', (chunk) => { output += chunk; });
-    server.once('error', fail);
-    server.once('exit', (code) => fail(new Error(`Server exited before it became ready (code ${code}). Output:\n${output}`)));
-  });
+    try {
+      return await requestInfo(port);
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
+  throw new Error(`Server did not become ready: ${lastError?.message}`);
 }
 
 test('GET /info returns API metadata', { timeout: 15000 }, async (t) => {
+  const port = 3001;
   const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'heta-api-test-'));
   const filesDirectory = path.join(tempDirectory, 'files');
   const server = spawn(process.execPath, ['src'], {
     cwd: projectRoot,
-    env: { ...process.env, PORT: '0', FILES: filesDirectory },
-    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, PORT: String(port), FILES: filesDirectory },
+    stdio: 'ignore',
     windowsHide: true,
   });
 
@@ -66,8 +59,7 @@ test('GET /info returns API metadata', { timeout: 15000 }, async (t) => {
     fs.rmSync(tempDirectory, { recursive: true, force: true });
   });
 
-  const port = await waitForServerPort(server);
-  const response = await requestInfo(port);
+  const response = await waitForServer(port, server);
 
   assert.equal(response.statusCode, 200);
   assert.deepEqual(JSON.parse(response.body), {
