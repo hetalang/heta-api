@@ -28,6 +28,25 @@ get OpenAPI schema.
 
 Receive a message with heta-compiler version.
 
+### /mcp (POST)
+
+Stateless MCP endpoint using Streamable HTTP, for ChatGPT plugins and other MCP clients.
+It exposes `buildPlatform` (the same arguments as `POST /build`) and `getInfo`.
+Build requests pass through the existing REST validation and compiler. Results include
+raw logs, generated files, and absolute temporary download links. REST errors, including
+422 compilation diagnostics, are returned as MCP tool errors with the original response.
+GET and DELETE return 405 because no persistent streams or sessions are used.
+
+`PUBLIC_URL` defaults to `https://heta-api.insysbio.com`. Set it to the public HTTPS
+origin when deploying under another hostname, or to `http://localhost:3000` for local
+download links. MCP validates Host and Origin headers; a reverse proxy should preserve
+the public Host header (or forward a localhost Host). No user authentication is required,
+consistent with the existing API.
+
+After deploying, connect the existing Heta Modeling Assistant plugin to
+`https://heta-api.insysbio.com/mcp` using Streamable HTTP. An OpenAPI schema alone
+is not an MCP connection. Verify tool discovery and compile a small model before use.
+
 ## Run
 
 ```bash

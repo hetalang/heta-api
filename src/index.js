@@ -21,6 +21,7 @@ const infoRoutes = require('./info');
 const buildRoutes = require('./build');
 const downloadRoutes = require('./download');
 const schemaRoutes = require('./schema');
+const { createMcpRouter } = require('./mcp');
 
 app.use(express.json());
 // Load OpenAPI schema
@@ -36,6 +37,9 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// MCP uses JSON-RPC rather than the REST OpenAPI schema.
+app.use('/mcp', createMcpRouter());
 
 app.use(
     OpenApiValidator.middleware({
