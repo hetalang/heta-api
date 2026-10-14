@@ -18,6 +18,7 @@
         <li>"/info": information about infrastructure</li>
         <li>"/download/{taskId}": download build result as ZIP</li>
         <li>"/schema": OpenAPI 3.1.0 schema for the API</li>
+        <li>"/mcp": MCP endpoint for compatible clients</li>
     </ul>
     
     <h2>See also</h2>
@@ -29,7 +30,7 @@
     <h1>Heta Compiler API - Developer Documentation</h1>
     <p>The Heta Compiler API provides an interface for compiling Heta platforms, customizing compilation workflows, and exporting results. This documentation details the API structure, parameters, and examples for developers.</p>
     <p><strong>Base URL:</strong> <a href="https://heta-api.insysbio.com" target="_blank">https://heta-api.insysbio.com</a></p>
-    <p><strong>API Version:</strong> 0.1.1</p>
+    <p><strong>OpenAPI specification:</strong> <a href="/schema">/schema</a></p>
 
     <div class="endpoint">
         <h2>1. Compile a Platform</h2>
@@ -39,12 +40,12 @@
 
         <h3>Request Body</h3>
         <ul>
-            <li><strong>lifetime</strong> (optional, number): The time in seconds for keeping the files on the server. Default: <code>3600</code> (1 hour).</li>
-            <li><strong>inputFiles</strong> (required, array): An array of objects representing the platform files to be compiled. Each object must include:
+            <li><strong>lifetime</strong> (optional, number): The time in seconds for keeping the files on the server. Default: <code>3600</code> (1 hour). Set to <code>0</code> to remove files immediately after the response.</li>
+            <li><strong>inputFiles</strong> (required, non-empty array): An array of platform files. Each object has:
                 <ul>
-                    <li><strong>filepath</strong> (string): Path or name of the file (e.g., <code>"index.heta"</code>).</li>
-                    <li><strong>format</strong> (string): File format, either <code>"utf8"</code> or <code>"binary"</code>.</li>
-                    <li><strong>filebody</strong> (string): File content in plain text or binary format.</li>
+                    <li><strong>filepath</strong> (required string): Path or name of the file (e.g., <code>"index.heta"</code>).</li>
+                    <li><strong>format</strong> (optional string): Encoding, either <code>"utf8"</code> or <code>"binary"</code>; defaults to <code>"utf8"</code>.</li>
+                    <li><strong>filebody</strong> (string): File content to write before compilation.</li>
                 </ul>
             </li>
             <li><strong>declaration</strong> (optional, object): Describes how the compilation should proceed.
@@ -80,7 +81,7 @@
         {
             "filepath": "index.heta",
             "format": "utf8",
-            "filebody": "x1 @Record := 1.2;"
+            "filebody": "x1 @Record := 1.2;\nc1 @Compartment .= 5;"
         }
     ],
     "declaration": {
@@ -88,42 +89,32 @@
             "source": "index.heta",
             "type": "heta"
         },
-        "options": {
-            "unitsCheck": true,
-            "debug": false
-        },
         "export": [
-            { "format": "JSON" },
-            { "format": "SBML", "version": "L3V2" }
+            { "format": "JSON" }
         ]
     }
 }</code></pre>
 
         <h3>Response</h3>
         <div class="response">
-            <p><strong>Success (200):</strong></p>
-            <pre><code>{
-    "outputFiles": [{"filepath": "dist/json/model.json"}, {"filepath": "dist/sbml/model.xml"}],
-    "logs": ["Compilation finished successfully."],
-    "taskId": "example-task-id",
-    "lifeend": 1634025600
-}</code></pre>
+            <p><strong>Success (200):</strong> Returns <code>outputFiles</code> (including generated file content), <code>logs</code>, <code>taskId</code>, <code>lifeend</code>, <code>downloadLink</code> and <code>filesLink</code>. Check <code>logs</code> for compilation diagnostics even when the HTTP status is 200.</p>
         </div>
         <div class="response">
             <p><strong>Errors:</strong></p>
             <ul>
                 <li><strong>400</strong>: Invalid request parameters.</li>
-                <li><strong>422</strong>: Compilation errors due to misconfigured platform files.</li>
+                <li><strong>422</strong>: Compilation stopped with errors; the response includes logs and task details.</li>
+                <li><strong>403</strong>: Access to a requested file path was denied.</li>
                 <li><strong>500</strong>: Internal server error.</li>
             </ul>
         </div>
     </div>
 
     <div class="endpoint">
-        <h2>2. Download a File</h2>
+        <h2>2. Download Build Results</h2>
         <p><strong>Method:</strong> GET</p>
         <p><strong>Endpoint:</strong> <code>/download/{taskId}</code></p>
-        <p>Retrieve a file generated during a compilation task using the task ID.</p>
+        <p>Download a ZIP archive containing the files from a compilation task using its task ID. The link is available until the task expires.</p>
 
         <h3>Path Parameters</h3>
         <ul>
@@ -132,7 +123,7 @@
 
         <h3>Response</h3>
         <div class="response">
-            <p><strong>Success (200):</strong> File content is returned as binary data.</p>
+            <p><strong>Success (200):</strong> A ZIP archive is returned as binary data.</p>
             <p><strong>Errors:</strong></p>
             <ul>
                 <li><strong>404</strong>: File not found.</li>
@@ -148,12 +139,7 @@
         <p>Retrieve version and connectivity details for the Heta Compiler API.</p>
 
         <h3>Response</h3>
-        <pre><code>{
-            "description": "API connector for Heta compiler",
-            "version": "0.12.0",
-            "node": "v18.20.5",
-            "schema": "/schema"
-}</code></pre>
+        <p>Returns a description, the running Heta compiler version, the Node.js version, and the <code>/schema</code> path. Versions depend on the deployed server.</p>
     </div>
 
     <div class="endpoint">
@@ -163,9 +149,19 @@
         <p>Retrieve the complete OpenAPI schema for the Heta Compiler API.</p>
 
         <h3>Response</h3>
-        <pre><code>{
-            "openapi": "3.1.0"
-}</code></pre>
+        <p>Returns the full OpenAPI 3.1.0 JSON document, including paths, request and response schemas, and examples.</p>
+    </div>
+
+    <div class="endpoint">
+        <h2>5. Connect an MCP Client</h2>
+        <p><strong>Transport:</strong> Streamable HTTP (POST)</p>
+        <p><strong>Endpoint:</strong> <code>https://heta-api.insysbio.com/mcp</code></p>
+        <p>Configure this URL in an MCP client to use the Heta compiler. The endpoint does not require authentication and does not keep client sessions.</p>
+        <ul>
+            <li><code>buildPlatform</code>: compile or validate a platform using the same input as <code>POST /build</code>. Returns logs, generated files, and temporary download links.</li>
+            <li><code>getInfo</code>: get the running compiler and Node.js versions.</li>
+        </ul>
+        <p>Build results can be downloaded through the existing <code>/download/{taskId}</code> URL. A browser GET request to <code>/mcp</code> returns 405 because MCP requests use POST.</p>
     </div>
 
     <p><em>For more details or support, contact the API team.</em></p>
