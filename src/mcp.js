@@ -34,7 +34,17 @@ function createMcpRouter() {
 
   router.post('/', async (req, res) => {
     // One server/transport per request: no sessions to store or expire.
-    const server = new Server({ name: 'heta-api', version }, { capabilities: { tools: {} } });
+    const server = new Server({
+      name: 'heta-api',
+      title: 'Heta API',
+      description: 'Remote API for validating and compiling Heta modeling platforms with Heta compiler. Its MCP tools return compilation logs, generated files, and temporary download links.',
+      websiteUrl: new URL('/', publicUrl).href,
+      version,
+      icons: [{ src: new URL('/logo-old.png', publicUrl).href, mimeType: 'image/png', sizes: ['328x340'] }],
+    }, {
+      capabilities: { tools: {} },
+      instructions: 'Use buildPlatform with the platform source files to validate a Heta model or generate requested export formats. Read the returned logs to diagnose compilation errors. Generated files and download links are temporary. Use getInfo to check the compiler version running on this server. For Heta project documentation, see https://hetalang.github.io/.',
+    });
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     res.on('close', () => { void server.close(); });
 
@@ -42,14 +52,22 @@ function createMcpRouter() {
       tools: [
         {
           name: 'buildPlatform',
-          description: 'Compile or validate a Heta platform. Use index.heta as the default entry point. Omit declaration to use compiler defaults. Returns raw compilation logs, generated files and temporary download links; HTTP 422 retains compilation diagnostics.',
+          title: schema.paths['/build'].post.summary,
+          description: schema.paths['/build'].post.description,
           inputSchema: resolveSchema(schema.paths['/build'].post.requestBody.content['application/json'].schema),
+          outputSchema: {
+            type: 'object',
+            anyOf: ['200', '400', '500'].map((status) =>
+              resolveSchema(schema.paths['/build'].post.responses[status].content['application/json'].schema)),
+          },
           annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         },
         {
           name: 'getInfo',
-          description: 'Get the running Heta compiler and Node.js versions.',
+          title: schema.paths['/info'].get.summary,
+          description: schema.paths['/info'].get.description,
           inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+          outputSchema: resolveSchema(schema.paths['/info'].get.responses['200'].content['application/json'].schema),
           annotations: { readOnlyHint: true, openWorldHint: false },
         },
       ],

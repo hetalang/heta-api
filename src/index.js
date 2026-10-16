@@ -24,6 +24,7 @@ const schemaRoutes = require('./schema');
 const { createMcpRouter } = require('./mcp');
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '..', 'public')));
 // Load OpenAPI schema
 
 // collect minimal information

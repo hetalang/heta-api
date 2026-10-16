@@ -35,6 +35,8 @@ It exposes `buildPlatform` (the same arguments as `POST /build`) and `getInfo`.
 Build requests pass through the existing REST validation and compiler. Results include
 raw logs, generated files, and absolute temporary download links. REST errors, including
 422 compilation diagnostics, are returned as MCP tool errors with the original response.
+In production, Apache serves `filesLink` from the temporary build directory; the local
+Node server does not serve `/files`. Use `downloadLink` for a ZIP archive in either setup.
 GET and DELETE return 405 because no persistent streams or sessions are used.
 
 `PUBLIC_URL` defaults to `https://heta-api.insysbio.com`. Set it to the public HTTPS

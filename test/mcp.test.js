@@ -8,7 +8,7 @@ const test = require('node:test');
 const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
 const { StreamableHTTPClientTransport } = require('@modelcontextprotocol/sdk/client/streamableHttp.js');
 
-test('MCP discovery, compilation, validation and REST compatibility', { timeout: 20000 }, async (t) => {
+test('MCP discovery, compilation, validation and REST compatibility', { timeout: 60000 }, async (t) => {
   const port = 3002;
   const baseUrl = `http://127.0.0.1:${port}`;
   const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'heta-mcp-test-'));
@@ -25,7 +25,7 @@ test('MCP discovery, compilation, validation and REST compatibility', { timeout:
   });
 
   let ready = false;
-  for (let attempt = 0; attempt < 100; attempt++) {
+  for (let attempt = 0; attempt < 300; attempt++) {
     assert.equal(server.exitCode, null, 'server must remain running');
     try {
       const response = await fetch(`${baseUrl}/info`);
@@ -38,12 +38,47 @@ test('MCP discovery, compilation, validation and REST compatibility', { timeout:
   }
   assert.ok(ready, 'server must become ready');
   await client.connect(new StreamableHTTPClientTransport(new URL(`${baseUrl}/mcp`)));
+  const serverInfo = client.getServerVersion();
+  assert.equal(serverInfo.title, 'Heta API');
+  assert.match(serverInfo.description, /Remote API for validating and compiling Heta modeling platforms/);
+  assert.equal(serverInfo.websiteUrl, `${baseUrl}/`);
+  assert.match(client.getInstructions(), /Use buildPlatform with the platform source files/);
+  const serverIcon = serverInfo.icons[0];
+  assert.equal(serverIcon.src, `${baseUrl}/logo-old.png`);
+  assert.equal(serverIcon.mimeType, 'image/png');
+  assert.deepEqual(serverIcon.sizes, ['328x340']);
+  const iconResponse = await fetch(serverIcon.src);
+  assert.equal(iconResponse.status, 200);
+  assert.match(iconResponse.headers.get('content-type'), /^image\/png/);
+  assert.deepEqual(
+    Buffer.from(await iconResponse.arrayBuffer()),
+    fs.readFileSync(path.join(__dirname, '..', 'public', 'logo-old.png')),
+  );
   const { tools } = await client.listTools();
   assert.deepEqual(tools.map((tool) => tool.name), ['buildPlatform', 'getInfo']);
   assert.ok(!JSON.stringify(tools).includes('"$ref"'), 'schemas must be self-contained');
+  const buildOperation = require('../heta-api-schema.json').paths['/build'].post;
+  const buildTool = tools.find((tool) => tool.name === 'buildPlatform');
+  assert.equal(buildTool.title, buildOperation.summary);
+  assert.equal(buildTool.description, buildOperation.description);
+  assert.equal(buildTool.inputSchema.description, buildOperation.requestBody.content['application/json'].schema.description);
+  assert.deepEqual(buildTool.outputSchema.anyOf.slice(1), ['400', '500'].map((status) =>
+    buildOperation.responses[status].content['application/json'].schema));
+  assert.deepEqual(buildTool.outputSchema.anyOf[0].required, ['outputFiles', 'logs', 'taskId', 'lifeend', 'downloadLink', 'filesLink']);
+  assert.equal(buildTool.outputSchema.anyOf[0].properties.outputFiles.items.properties.filepath.type, 'string');
+  const infoTool = tools.find((tool) => tool.name === 'getInfo');
+  const infoOperation = require('../heta-api-schema.json').paths['/info'].get;
+  assert.equal(infoTool.title, infoOperation.summary);
+  assert.equal(infoTool.description, infoOperation.description);
+  assert.deepEqual(infoTool.inputSchema, { type: 'object', properties: {}, additionalProperties: false });
+  const infoOutputSchema = infoTool.outputSchema;
+  assert.deepEqual(infoOutputSchema, require('../heta-api-schema.json').paths['/info'].get.responses['200'].content['application/json'].schema);
+  assert.deepEqual(infoOutputSchema.required, ['description', 'version', 'node', 'schema']);
+  assert.ok(infoOutputSchema.required.every((field) => infoOutputSchema.properties[field].type === 'string'));
 
   const info = await client.callTool({ name: 'getInfo', arguments: {} });
   assert.equal(info.structuredContent.version, require('heta-compiler/package').version);
+  assert.deepEqual(Object.keys(info.structuredContent), infoOutputSchema.required);
 
   const args = {
     lifetime: 30,
@@ -52,6 +87,7 @@ test('MCP discovery, compilation, validation and REST compatibility', { timeout:
   };
   const compiled = await client.callTool({ name: 'buildPlatform', arguments: args });
   assert.notEqual(compiled.isError, true);
+  assert.deepEqual(Object.keys(compiled.structuredContent).sort(), [...buildTool.outputSchema.anyOf[0].required].sort());
   assert.ok(compiled.structuredContent.logs.includes('Compilation OK!'));
   assert.ok(compiled.structuredContent.outputFiles.some((file) => file.filepath.endsWith('.json')));
   assert.equal(compiled.structuredContent.downloadLink, `${baseUrl}/download/${compiled.structuredContent.taskId}`);

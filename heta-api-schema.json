@@ -15,25 +15,26 @@
       "/build": {
         "post": {
           "operationId": "buildPlatform",
-          "summary": "Trigger platform compilation",
-          "description": "Compiles a Heta-based platform and generates export files. It works synchronously and returns the result immediately. The result includes the list of generated files and logs. The files will be deleted after a certain time.",
+          "summary": "Build or validate a Heta platform",
+          "description": "Validate or compile a Heta modeling platform from supplied files. By default, index.heta is the entry point and no export format is selected. Set declaration.export to generate files in requested formats. The response includes compilation logs, generated files, and temporary download information, including diagnostics when compilation fails.",
           "requestBody": {
             "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "description": "Files and optional compiler settings for one remote build. Supply every source file referenced by the entry point.",
                   "required": ["inputFiles"],
                   "properties": {
                     "lifetime": {
                       "type": "number",
                       "minimum": 0,
                       "default": 3600,
-                      "description": "Time in seconds for keeping files on the server. It is related to the task ID. Default is 1 hour. If set to 0, files are removed immediately after the response is sent."
+                      "description": "Seconds to retain the build files and ZIP download. Defaults to 3600 (one hour). Set to 0 to delete them immediately after the response."
                     },
                     "inputFiles": {
                       "type": "array",
-                      "description": "Array of files of platform.",
+                      "description": "Source files for this platform. Include index.heta unless declaration.importModule.source names another entry point, and include any files it imports.",
                       "minItems": 1,
                       "items": { "$ref": "#/components/schemas/File" },
                       "example": [
@@ -46,23 +47,23 @@
                     },
                     "declaration": {
                       "type": "object",
-                      "description": "Structure describing the platform compilation. This object share same structure as platform.yml in heta-compiler. If omitted, the compiler will use the default options.",
+                      "description": "Compiler configuration in the same form as platform.yml. Omit it to use the compiler defaults, including index.heta as the entry point and no exports.",
                       "properties": {
                         "importModule": {
                           "type": "object",
-                          "description": "Import entry point module for compilation.",
+                          "description": "Entry point for the model. Omit to read index.heta as Heta source.",
                           "required": ["source"],
                           "properties": {
                             "source": {
                               "type": "string",
-                              "description": "Index file for compilation. The file should be included in 'files'. It is an entry point for compilation.",
+                              "description": "Path of the entry point file, relative to the platform root. Include this path in inputFiles. Defaults to index.heta.",
                               "default": "index.heta",
                               "example": "src/index.heta"
                             },
                             "type": {
                               "type": "string",
                               "enum": ["heta", "table", "xlsx", "json", "yaml", "sbml"],
-                              "description": "The format of source file for compilation.",
+                              "description": "Source format of the entry point file. Defaults to heta.",
                               "default": "heta",
                               "example": "json"
                             }
@@ -70,26 +71,26 @@
                         },
                         "options": {
                           "type": "object",
-                          "description": "Compilation options.",
+                          "description": "Optional compiler settings for validation, debugging, and output directories.",
                           "properties": {
                             "unitsCheck": {
                               "type": "boolean",
                               "default": false,
-                              "description": "Check for unit consistency. If 'true' the command will check the units consistency in the platform. If 'false' (default) the command will skip the units check."
+                              "description": "Check unit consistency in the platform when true. Defaults to false."
                             },
                             "debug": {
                               "type": "boolean",
-                              "description": "Enable debugging mode. In debug mode, the compiler will save additional files in 'metaDir' for debugging purposes.", 
+                              "description": "Save additional compiler metadata in options.metaDir when true. Defaults to false.",
                               "default": false
                             },
                             "distDir": {
                               "type": "string",
-                              "description": "Path for saving exported files as stated in 'export' option.",
+                              "description": "Directory for generated export files, relative to the platform root. Defaults to dist.",
                               "default": "dist"
                             },
                             "metaDir": {
                               "type": "string",
-                              "description": "Path for saving metadata. Used for debugging when option 'debug: true'.",
+                              "description": "Directory for debug metadata, relative to the platform root. Defaults to meta.",
                               "default": "meta"
                             }
                           }
@@ -114,10 +115,12 @@
                         "source": "index.heta",
                         "type": "heta"
                       },
-                      "unitsCheck": true,  
-                      "debug": false,
-                      "distDir": "dist",
-                      "metaDir": "meta",
+                      "options": {
+                        "unitsCheck": true,
+                        "debug": false,
+                        "distDir": "dist",
+                        "metaDir": "meta"
+                      },
                       "export": [
                         { "format": "JSON" },
                         { "format": "YAML" },
@@ -143,54 +146,47 @@
                 "application/json": {
                   "schema": {
                     "type": "object",
+                    "description": "Result of one build. Inspect logs for diagnostics; outputFiles contains generated file contents, downloadLink provides a ZIP archive, and filesLink points to the build directory served by Apache in production.",
+                    "required": ["outputFiles", "logs", "taskId", "lifeend", "downloadLink", "filesLink"],
                     "properties": {
                       "outputFiles": {
                         "type": "array",
-                        "description": "Array of generated files.",
+                        "description": "Generated files, including the platform declaration and requested exports. Each item includes its path and content.",
                         "items": { "$ref": "#/components/schemas/File" }
                       },
                       "logs": {
                         "type": "array",
-                        "description": "Array of log messages.",
+                        "description": "Compiler log messages and diagnostics. Inspect these even when the request succeeds.",
                         "items": { "type": "string" }
                       },
                       "taskId": {
                         "type": "string",
-                        "description": "Task ID for getting files in UIDs format.",
+                        "description": "Identifier of this build, used in the download URL.",
                         "example": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                       },
                       "lifeend": {
                         "type": "number",
-                        "description": "Time when files will be deleted in Unix timestamp seconds format.",
+                        "description": "Unix timestamp in seconds when retained files are scheduled for deletion.",
                         "example": 1634025600
                       },
                       "downloadLink": {
                         "type": "string",
-                        "description": "Link for downloading a ZIP file with all generated files.",
+                        "description": "Temporary ZIP download for the build files. Relative to the API origin in REST responses; absolute in MCP results. Unavailable after lifeend or when lifetime is 0.",
                         "example": "/download/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                       },
                       "filesLink": {
                         "type": "string",
-                        "description": "Link for server where all files are temporally stored. To get the full path add base server URL, e.g. https://heta-api.insysbio.com/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
+                        "description": "Temporary URL of the build directory, served by Apache in production for direct file access. Relative to the API origin in REST responses; absolute in MCP results. The local Node server does not serve /files. Unavailable after lifeend or when lifetime is 0.",
                         "example": "/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                       }
                     },
+                    "additionalProperties": false,
                     "example": {
                       "outputFiles": [
-                        {"filepath": "index.heta"},
-                        {"filepath": "dist/json/model.json"},
-                        {"filepath": "dist/yaml/model.yaml"},
-                        {"filepath": "dist/dbsolve/model.slv"},
-                        {"filepath": "dist/sbml/model.xml"},
-                        {"filepath": "dist/simbio/model.m"},
-                        {"filepath": "dist/mrgsolve/model.cpp"},
-                        {"filepath": "dist/mrgsolve/run.R"},
-                        {"filepath": "dist/table/model.xlsx"},
-                        {"filepath": "dist/matlab/model.m"},
-                        {"filepath": "dist/dot/model.dot"},
-                        {"filepath": "dist/summary/model.txt"}
+                        {"filepath": "platform.yml", "format": "utf8", "filebody": "{\"export\":[{\"format\":\"JSON\"}]}"},
+                        {"filepath": "dist/output.heta.json", "format": "binary", "filebody": "..."}
                       ],
-                      "logs": ["Compilation finished successfully."],
+                      "logs": ["Compilation OK!"],
                       "taskId": "5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
                       "lifeend": 1634025600,
                       "downloadLink": "/download/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
@@ -234,7 +230,7 @@
                       },
                       "filesLink": {
                         "type": "string",
-                        "description": "Link for server where all files are temporally stored. To get the full path add base server URL, e.g. https://heta-api.insysbio.com/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b",
+                        "description": "Temporary URL of the build directory, served by Apache in production for direct file access. The local Node server does not serve /files.",
                         "example": "/files/5f7b1b7b-0b7b-4b7b-8b7b-0b7b7b7b7b7b"
                       }
                     }
@@ -248,6 +244,7 @@
                 "application/json": {
                   "schema": {
                     "type": "object",
+                    "required": ["name", "message"],
                     "properties": {
                       "name": {
                         "type": "string",
@@ -259,9 +256,10 @@
                       },
                       "errors": {
                         "type": "array",
-                        "items": { "type": "string" }
+                        "items": { "type": "object" }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 }
               }
@@ -272,12 +270,18 @@
                 "application/json": {
                   "schema": {
                     "type": "object",
+                    "required": ["message"],
                     "properties": {
                       "message": {
                         "type": "string",
                         "example": "Internal Heta compiler error."
+                      },
+                      "errors": {
+                        "type": "array",
+                        "items": { "type": "object" }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 }
               }
@@ -352,7 +356,8 @@
       "/info": {
         "get": {
           "operationId": "getInfo",
-          "description": "Check connectivity and get information about the Heta Compiler.",
+          "summary": "Get Heta API environment info",
+          "description": "Check that Heta API is reachable and return the Heta compiler and Node.js versions used by the server, along with the OpenAPI schema path. No arguments are required.",
           "responses": {
             "200": {
               "description": "Information about the Heta Compiler.",
@@ -360,20 +365,30 @@
                 "application/json": {
                   "schema": {
                     "type": "object",
+                    "required": ["description", "version", "node", "schema"],
                     "properties": {
+                      "description": {
+                        "type": "string",
+                        "description": "Short description of the API service.",
+                        "example": "API connector for Heta compiler"
+                      },
                       "version": {
                         "type": "string",
-                        "example": "1.0.0"
+                        "description": "Version of Heta compiler installed on the server.",
+                        "example": "0.12.2"
                       },
                       "node": {
                         "type": "string",
-                        "example": "v14.17.0"
+                        "description": "Version of the Node.js runtime used by the server.",
+                        "example": "v20.0.0"
                       },
-                      "description": {
+                      "schema": {
                         "type": "string",
-                        "example": "Heta Compiler API"
+                        "description": "Path to the OpenAPI schema for Heta API.",
+                        "example": "/schema"
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 }
               }
@@ -411,7 +426,7 @@
         "Export": {
           "type": "array",
           "default": [],
-          "description": "Array of export formats. If omitted nothing wll be exported which is useful for testing correctness of platform.",
+          "description": "Export formats to generate after validation. Omit or leave empty to check the platform without generating format-specific exports.",
           "items": {
             "type": "object",
             "required": ["format"],
@@ -419,59 +434,59 @@
               "format": {
                 "type": "string",
                 "enum": ["JSON", "YAML", "DBSolve", "SBML", "Simbio", "Mrgsolve", "Table", "XLSX", "Julia", "Matlab", "Dot", "Summary", "Canonical", "HetaCode", "Dynms"],
-                "description": "The type of file for compilation. Case sensitive."
+                "description": "Output format to generate. Use one of the listed names with the shown capitalization."
               },
               "spaceFilter": {
                 "type": "string",
-                "description": "Filter for space in RegExp format. Skip it if you want to export all spaces.",
+                "description": "Regular expression selecting namespaces to export. Omit to export all applicable namespaces.",
                 "example": "^one|two$"
               },
               "omit": {
                 "type": "array",
-                "description": "Array of properties paths to exclude from output. Used in JSON, YAML and Table formats.",
+                "description": "Property paths to omit from JSON, YAML, or Table output.",
                 "items": { "type": "string" },
                 "example": ["notes", "tags"]
               },
               "noUnitsExpr": {
                 "type": "boolean",
-                "description": "If false or not set, all units will be written in UnitsExpr format. If true, units will be written in Unit array format. Used in JSON and YAML formats."
+                "description": "For JSON and YAML exports, write units as Unit arrays when true; otherwise use UnitsExpr."
               },
               "powTransform": {
                 "type": "string",
                 "enum": ["keep", "operator", "function"],
-                "description": "Transformation of x^y and pow(x, y). Used for DBSolve and SLV formats."
+                "description": "How to represent exponentiation in DBSolve output."
               },
               "version": {
                 "type": "string",
                 "enum": ["25", "26", "L2V3", "L2V4", "L2V5", "L3V1", "L3V2"],
-                "description": "File version for SLV, DBSolve, and SBML formats."
+                "description": "Target format version for DBSolve or SBML output. Choose a version supported by the selected format."
               },
               "eventsOff": {
                 "type": "boolean",
-                "description": "If true, switchers will not be exported to DBSolve events. Used for SLV format."
+                "description": "Exclude switchers from exported DBSolve events when true."
               },
               "groupConstBy": {
                 "type": "string",
-                "description": "How to group const in Initial Values of DBSolve file. Written in JSON path format.",
+                "description": "JSON path used to group constants in the Initial Values section of DBSolve output.",
                 "example": "tags[0]"
               },
               "auxAsNotes": {
                 "type": "boolean",
-                "description": "If true, aux content will be appended to Simbio Notes as JSON object. Used for Simbio format."
+                "description": "Append auxiliary content as a JSON object in Simbio Notes when true."
               },
               "omitRows": {
                 "type": "number",
-                "description": "Creates empty rows in output sheets. Used for Table and XLSX formats.",
+                "description": "Number of empty rows to add to Table or XLSX output sheets.",
                 "example": 3
               },
               "bookType": {
                 "type": "string",
                 "enum": ["xlsx", "xlsm", "xlsb", "biff8", "wk3", "csv", "txt", "sylk", "biff5", "biff4", "biff3", "biff2", "html", "dif", "dbf", "wk1", "xlml", "ods", "fods", "rtf", "prn", "eth"],
-                "description": "Supported file types for Table format."
+                "description": "Workbook or text file type for Table output."
               },
               "splitByClass": {
                 "type": "boolean",
-                "description": "If true, components will be split by class and saved as separate sheets/files. Used for Table and XLSX formats."
+                "description": "Write each component class to a separate sheet or file in Table and XLSX exports when true."
               }
             }
           }
@@ -482,17 +497,17 @@
           "properties": {
             "filepath": {
               "type": "string",
-              "description": "Path to the file."
+              "description": "File path relative to the platform root. For input files, include the entry point and all imported files."
             },
             "format": {
               "type": "string",
               "enum": ["binary", "utf8"],
               "default": "utf8",
-              "description": "The type of file."
+              "description": "Encoding of filebody: utf8 for text or binary for a binary string. Defaults to utf8 for input files."
             },
             "filebody": {
               "type": "string",
-              "description": "File content as binary or plain string."
+              "description": "File contents as a string in the encoding named by format."
             }
           }
         }
