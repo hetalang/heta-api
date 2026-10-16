@@ -58,3 +58,23 @@ npm run dev
 ```
 
 `npm run dev` is recommended for local cross-platform development (Windows/Linux/macOS).
+
+## Production static files
+
+The Node app serves `public/` when accessed directly. In the production Apache setup,
+Apache handles `/`, `/privacy.html`, and `/logo-old.png` itself: its `DocumentRoot` is
+`/var/heta-api`, while the app runs from `/home/azureuser/heta-api`. Uploading new
+files to the app's `public/` directory or restarting `heta-api` does not update the
+pages served by Apache.
+
+After updating `public/`, copy its static files to the Apache document root:
+
+```bash
+sudo install -m 644 /home/azureuser/heta-api/public/index.html /var/heta-api/index.html
+sudo install -m 644 /home/azureuser/heta-api/public/privacy.html /var/heta-api/privacy.html
+sudo install -m 644 /home/azureuser/heta-api/public/logo-old.png /var/heta-api/logo-old.png
+```
+
+The logo URL is used in the MCP server metadata. Apache serves `/files` from the
+same document root, so do not use a copy command that deletes other files there
+(such as `rsync --delete`). Copying these files does not require a service restart.
