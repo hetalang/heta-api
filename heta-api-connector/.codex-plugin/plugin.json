@@ -1,0 +1,22 @@
+{
+  "apps": "./.app.json",
+  "author": {
+    "name": "Evgeny Metelkin"
+  },
+  "description": "Validate and compile Heta modeling platforms using Heta API. Inspect compilation logs and generated files, and download temporary build results.",
+  "interface": {
+    "capabilities": [],
+    "category": "Other",
+    "defaultPrompt": null,
+    "developerName": "Evgeny Metelkin",
+    "displayName": "Heta API connector",
+    "longDescription": "Validate and compile Heta modeling platforms using Heta API. Inspect compilation logs and generated files, and download temporary build results.",
+    "shortDescription": "Compile Heta models remotely",
+    "websiteURL": "https://heta-api.insysbio.com/",
+    "privacyPolicyURL": "https://heta-api.insysbio.com/privacy.html",
+    "logo": "./assets/logo.png",
+    "composerIcon": "./assets/logo.png"
+  },
+  "name": "dev-6acf9adc69e88191bcb1f841041bb8cb",
+  "version": "1.0.1"
+}
